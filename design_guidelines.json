@@ -1,0 +1,155 @@
+{
+  "theme": "Dark Elegant",
+  "theme_decision": "The client requests a premium B2B exporter website targeting international architects and resort developers. The core product is 'Sukabumi Green Stone'. The aesthetic must be 'Awwwards-worthy', utilizing a dark elegant deep-stone green palette. A dark mode approach emphasizes the luxury and rich textures of natural stone, preventing the site from looking like a standard retail catalog and elevating it to an editorial architectural gallery.",
+  "colors": {
+    "archetype": "LUXURY",
+    "palette": {
+      "background": "#0c0e0c",
+      "surface": "#131714",
+      "surface_raised": "#1a1f1b",
+      "primary": "#274a35",
+      "primary_foreground": "#ffffff",
+      "accent": "#c2a373",
+      "text_primary": "#e4e8e5",
+      "text_muted": "#8d9690",
+      "border": "#212823"
+    },
+    "rules": [
+      "No pure black (#000000). Use #0c0e0c (tinted heavily with deep green/slate).",
+      "No pure white text. Use #e4e8e5 (off-white/bone).",
+      "Primary CTA buttons must use the deep Sukabumi green (#274a35) with hover state slightly lighter (#325c43).",
+      "Use #c2a373 (brass/gold) strictly for micro-details, overlines, and active indicators."
+    ]
+  },
+  "typography": {
+    "strategy": "The 'Old Money Tech' / Editorial Future",
+    "fonts": {
+      "headings": "Cormorant Garamond",
+      "body": "Manrope",
+      "mono": "JetBrains Mono"
+    },
+    "rules": [
+      "H1 (Hero): text-5xl sm:text-6xl lg:text-7xl with tracking-tighter and leading-none. (Exception to text-6xl limit due to client requesting 'large kinetic hero', but keep it responsive).",
+      "Headings strictly use Cormorant Garamond (font-serif).",
+      "Body text uses Manrope (font-sans) for clean, geometric legibility.",
+      "Overlines and small labels must be uppercase, text-xs, tracking-[0.2em], text-accent.",
+      "Never center paragraphs. Left-align for architectural rigor."
+    ]
+  },
+  "visual_enhancers": {
+    "surfaces": [
+      "Crystal Glass: Use backdrop-blur-xl bg-surface/60 border-b border-white/5 for sticky headers.",
+      "Grid Borders: For technical specifications and B2B feature matrices, use border-collapse with 1px border-border/40."
+    ],
+    "textures": "Incorporate a subtle SVG noise filter overlay (opacity 0.03) globally to break digital flatness and give a 'stone-like' grain to the dark backgrounds.",
+    "overlays": "Hero images must use a gradient overlay (bg-gradient-to-t from-[#0c0e0c] via-[#0c0e0c]/40 to-transparent) to ensure maximum text readability without killing the image."
+  },
+  "layouts": {
+    "marketing_pages": {
+      "home_13_sections": [
+        "1. Hero Section: Kinetic text reveal, full-height parallax background image of luxury pool, tracking-tight typography.",
+        "2. Slow Editorial Marquee: react-fast-marquee with serif text ('PEDRA BALI — SUKABUMI GREEN — VOLCANIC HERITAGE'), text-sm, wide tracking, border-y border-border/50.",
+        "3. Manifesto / Introduction: Split layout (Text on left, clipped vertical image on right), numbered chapter '01'.",
+        "4. Featured Product Spotlight: Large clipped frame spotlighting Sukabumi Green Stone texture, dark green surface background.",
+        "5. Architectural Applications (Bento Grid): Asymmetric grid (Mode A: Tetris) showing Pools, Cladding, and Paving.",
+        "6. B2B Exporter Value Props: Grid of 3 columns, focusing on scale, quality control, custom cuts.",
+        "7. Full Width Parallax Divider: Massive high-res texture of stone with minimal text overlay.",
+        "8. Global Export Reach: Minimalistic map or stats section highlighting international shipping.",
+        "9. Quarry to Delivery Process: Vertical timeline or step-by-step layout using monospace numbering.",
+        "10. Featured Projects / Case Studies: Horizontal scroll section (framer-motion).",
+        "11. Architect / Client Testimonials: Clean typography, quote-focused, no complex cards.",
+        "12. SEO / FAQ Schema Accordion: Shadcn accordion, semantic HTML, rich snippets integration.",
+        "13. Final CTA / Inquiry: High-contrast deep green card, WhatsApp floating button, lead-gen form."
+      ]
+    },
+    "admin_dashboard": {
+      "strategy": "High-density Grid (Mode B), dark mode native.",
+      "structure": "Sidebar navigation (Home, About, Contact, Blog, Products, Inquiries). Topbar (User profile, Breadcrumbs).",
+      "components": "Shadcn UI exclusively. Use flat backgrounds with 1px subtle borders (border-border). No heavy drop shadows. Data tables for inquiries and CMS list views."
+    }
+  },
+  "motion": {
+    "libraries": ["framer-motion", "@studio-freight/react-lenis"],
+    "rules": [
+      "MANDATORY: Use Lenis for smooth scrolling to give momentum and premium weight.",
+      "Hero Text: Use Framer Motion for line-by-line masked reveals (overflow-hidden wrapper, translateY from 100% to 0%).",
+      "Scroll Reveals: Elements must fade and slide up slightly (y: 20, opacity: 0) on scroll using Framer Motion whileInView.",
+      "Hover States: Images in bento grids must scale slightly (scale-105) with long duration (duration-500 or 700) on container hover.",
+      "Respect 'prefers-reduced-motion'."
+    ]
+  },
+  "media": {
+    "image_urls": {
+      "hero_pool": {
+        "url": "https://images.unsplash.com/photo-1724688078741-6d89e587e809?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1Mjh8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBwb29sJTIwYXJjaGl0ZWN0dXJlfGVufDB8fHx8MTc4ODIyMTc3OXww&ixlib=rb-4.1.0&q=85",
+        "description": "Luxury pool architecture with cactus (Use for Hero background)"
+      },
+      "manifesto_stone": {
+        "url": "https://images.unsplash.com/photo-1774535697396-53833f0587c4?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODB8MHwxfHNlYXJjaHwxfHxuYXR1cmFsJTIwc3RvbmUlMjBhcmNoaXRlY3R1cmFsJTIwd2FsbCUyMGNsYWRkaW5nfGVufDB8fHx8MTc4ODIyMTc2OXww&ixlib=rb-4.1.0&q=85",
+        "description": "Irregular shaped natural stones (Use for '01 Manifesto' or About section)"
+      },
+      "product_texture": {
+        "url": "https://images.pexels.com/photos/12606925/pexels-photo-12606925.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "description": "Close-up of rough textured stone wall (Use for Product Highlight / Parallax Divider)"
+      },
+      "application_bathroom": {
+        "url": "https://images.unsplash.com/photo-1782805180061-3d131e792074?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTZ8MHwxfHNlYXJjaHw0fHxkYXJrJTIwZ3JlZW4lMjBtYXJibGV8ZW58MHx8fHwxNzg4MjIxNzc5fDA&ixlib=rb-4.1.0&q=85",
+        "description": "Modern bathroom with dark green stone/tiles (Use for Applications Bento Grid)"
+      },
+      "pool_render": {
+        "url": "https://images.unsplash.com/photo-1720110846280-737f9c7df86c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1Mjh8MHwxfHNlYXJjaHwzfHxsdXh1cnklMjBwb29sJTIwYXJjaGl0ZWN0dXJlfGVufDB8fHx8MTc4ODIyMTc3OXww&ixlib=rb-4.1.0&q=85",
+        "description": "Clean white pool architecture render (Use for Case Studies or Projects)"
+      },
+      "green_marble_texture": {
+        "url": "https://images.unsplash.com/photo-1761498465939-716968017166?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTZ8MHwxfHNlYXJjaHwzfHxkYXJrJTIwZ3JlZW4lMjBtYXJibGV8ZW58MHx8fHwxNzg4MjIxNzc5fDA&ixlib=rb-4.1.0&q=85",
+        "description": "Green marbled texture (Use for backgrounds or cards)"
+      }
+    }
+  },
+  "seo_guidelines": {
+    "strategy": "GEO / AIO / AEO Optimized",
+    "rules": [
+      "Inject JSON-LD structured data in the <head> of marketing pages for 'Organization', 'Product', and 'FAQPage'.",
+      "Ensure semantic HTML: strict H1 -> H2 -> H3 hierarchy. No skipped heading levels.",
+      "All images must have descriptive alt tags featuring target keywords (e.g., 'Sukabumi Green Stone Pool Tiles').",
+      "Include a structured SEO meta tags component using React Helmet or Next.js Metadata (if applicable)."
+    ]
+  },
+  "accessibility": {
+    "rules": [
+      "All interactive elements MUST have data-testid attributes (e.g., data-testid='contact-submit-btn').",
+      "Ensure contrast ratio is minimum 4.5:1 for normal text.",
+      "Explicitly set hover/focus states: focus:ring-2 focus:ring-accent."
+    ]
+  },
+  "instructions_to_main_agent": [
+    "You are building a Hybrid App: Marketing Site + Admin Dashboard. Set up distinct routing layouts.",
+    "Marketing Site: Build with raw Tailwind CSS. Avoid standard Shadcn cards to ensure an asymmetrical, awwwards-worthy editorial look. Use generous padding (py-24, py-32).",
+    "Admin Dashboard: Build heavily with Shadcn components (Tables, Forms, Inputs, Dialogs). Keep it dense, modular, and functional (Dark mode).",
+    "Install 'framer-motion', '@studio-freight/react-lenis', 'react-fast-marquee', and 'lucide-react'.",
+    "Implement the 13 specified sections for the homepage.",
+    "Implement a WhatsApp floating button fixed to the bottom right for B2B inquiries.",
+    "For the Admin, create standard CRUD interfaces for Pages (Home, About, Contact), Blog, Products, and Inquiries.",
+    "Use 'Cormorant Garamond' (serif) and 'Manrope' (sans). Update the CSS variables for the color palette accurately."
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "You tend to converge toward generic outputs. Avoid this: make creative, distinctive frontends that surprise and delight.",
+    "Do not use dark colors as gradients.",
+    "Don't make generic centered layouts. Create depth through layered design elements with z-index hierarchy.",
+    "Use glass-morphism effects with backdrop filters (12-24px blur) for sticky navs.",
+    "You MUST NOT apply universal transition (e.g., transition: all). Add transitions for specific properties.",
+    "You MUST NOT center align the app container (.App { text-align: center; }).",
+    "NEVER use AI assistant Emoji characters like 🤖🧠💭💡🔮🎯 for icons. Use lucide-react.",
+    "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations.",
+    "Use 2-3x more spacing than feels comfortable.",
+    "Missing categories = main agent will use placeholder text which is FORBIDDEN. Use the provided image URLs.",
+    "Use 'sonner' for toasts.",
+    "DO NOT use complete 'transparent' background in header or overlays. Ensure content under it doesn't break readability."
+  ],
+  "general_ui_ux_guidelines": [
+    "Visual Hierarchy: Use extreme font size contrasts (e.g., 5xl headings vs. xs overlines).",
+    "Empty Space: Treat empty space as an active design element. Let the stone textures breathe.",
+    "Forms: Form inputs should have a minimal aesthetic—bottom border only, or subtle dark filled background. No heavy borders.",
+    "Testing: Add data-testid to every clickable element."
+  ]
+}
