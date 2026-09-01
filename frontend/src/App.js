@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import "@/App.css";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
-import Lenis from "lenis";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/context/AuthContext";
 
@@ -42,22 +41,6 @@ function ScrollToTop() {
 }
 
 function SiteShell({ children }) {
-  // Smooth scroll is scoped to the public site only — admin pages (long forms,
-  // rich text editors with their own scroll regions) fought with it otherwise.
-  useEffect(() => {
-    const lenis = new Lenis({ lerp: 0.09 });
-    let rafId;
-    const raf = (time) => {
-      lenis.raf(time);
-      rafId = requestAnimationFrame(raf);
-    };
-    rafId = requestAnimationFrame(raf);
-    return () => {
-      cancelAnimationFrame(rafId);
-      lenis.destroy();
-    };
-  }, []);
-
   return (
     <div className="grain min-h-screen bg-ink">
       <Navbar />
