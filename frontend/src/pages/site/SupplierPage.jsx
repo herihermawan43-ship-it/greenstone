@@ -8,6 +8,13 @@ import { SectionTag } from "@/components/site/SectionTag";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import NotFound from "@/pages/NotFound";
 
+function hashPick(seed, length) {
+  if (length <= 0) return 0;
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  return h % length;
+}
+
 export default function SupplierPage() {
   const { keyword, country } = useParams();
   const { data, isLoading, isError } = useQuery({
@@ -25,6 +32,13 @@ export default function SupplierPage() {
   const c = data.content;
   const kw = data.keyword;
   const cn = data.country;
+
+  const gallery = (products || []).flatMap((p) => [p.image, ...(p.gallery || [])]).filter(Boolean);
+  const pickImage = (section) => (gallery.length ? gallery[hashPick(`${kw.slug}-${cn.slug}-${section}`, gallery.length)] : null);
+  const heroImage = pickImage("hero");
+  const bannerImage = pickImage("banner");
+  const sustainabilityImage = pickImage("sustainability");
+  const specsImage = pickImage("specs");
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -57,8 +71,15 @@ export default function SupplierPage() {
       />
 
       {/* 01 HERO */}
-      <section className="border-b border-line bg-surface">
-        <div className="container-x pb-16 pt-44">
+      <section className="relative overflow-hidden border-b border-line bg-surface">
+        {heroImage && (
+          <>
+            <img src={heroImage} alt="" className="absolute inset-0 h-full w-full object-cover opacity-25" />
+            <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/90 to-ink/50" />
+            <div className="absolute inset-0 bg-gradient-to-t from-ink via-transparent to-transparent" />
+          </>
+        )}
+        <div className="container-x relative pb-16 pt-44">
           <Reveal>
             <nav className="mb-8 flex flex-wrap items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-ash" data-testid="supplier-breadcrumb">
               <Link to="/export" className="transition-colors hover:text-brass">Export Markets</Link>
@@ -176,24 +197,45 @@ export default function SupplierPage() {
             <SectionTag num="04" label="QUALITY & SPECIFICATIONS" />
             <h2 className="mt-6 max-w-3xl font-serif text-3xl text-bone">Export-Grade Standards</h2>
           </Reveal>
-          <div className="mt-12 grid gap-8 sm:grid-cols-2">
-            {[
-              { icon: CheckCircle2, title: "Calibration Tolerance", desc: "All pieces measured to ±1mm — consistent across every container shipped to " + cn.name },
-              { icon: Award, title: "Piece-by-Piece Grading", desc: "Each tile hand-graded for colour, finish and structural integrity before packing" },
-              { icon: Zap, title: "Lab Tested", desc: "Compression, absorption and freeze-thaw testing per international stone standards" },
-              { icon: FileCheck, title: "Documentation", desc: "Pallet-level QC reports, certificates of origin and full traceability included" },
-            ].map(({ icon: Icon, title, desc }, i) => (
-              <Reveal key={title} delay={i * 0.08}>
-                <div className="border-t border-brass/40 pt-6">
-                  <Icon className="h-6 w-6 text-brass" />
-                  <h3 className="mt-4 font-serif text-lg text-bone">{title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-ash">{desc}</p>
-                </div>
+          <div className="mt-12 grid gap-10 lg:grid-cols-12">
+            {specsImage && (
+              <Reveal className="lg:col-span-4">
+                <img src={specsImage} alt={`${kw.name} export-grade material`} className="aspect-[3/4] w-full object-cover" />
               </Reveal>
-            ))}
+            )}
+            <div className={`grid gap-8 sm:grid-cols-2 ${specsImage ? "lg:col-span-8" : "lg:col-span-12"}`}>
+              {[
+                { icon: CheckCircle2, title: "Calibration Tolerance", desc: "All pieces measured to ±1mm — consistent across every container shipped to " + cn.name },
+                { icon: Award, title: "Piece-by-Piece Grading", desc: "Each tile hand-graded for colour, finish and structural integrity before packing" },
+                { icon: Zap, title: "Lab Tested", desc: "Compression, absorption and freeze-thaw testing per international stone standards" },
+                { icon: FileCheck, title: "Documentation", desc: "Pallet-level QC reports, certificates of origin and full traceability included" },
+              ].map(({ icon: Icon, title, desc }, i) => (
+                <Reveal key={title} delay={i * 0.08}>
+                  <div className="border-t border-brass/40 pt-6">
+                    <Icon className="h-6 w-6 text-brass" />
+                    <h3 className="mt-4 font-serif text-lg text-bone">{title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-ash">{desc}</p>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
           </div>
         </div>
       </section>
+
+      {/* IMAGE BANNER BREAK */}
+      {bannerImage && (
+        <section className="relative h-72 overflow-hidden sm:h-96">
+          <img src={bannerImage} alt={`${kw.name} quarry to port`} className="h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-transparent" />
+          <div className="container-x absolute inset-x-0 bottom-0 pb-10">
+            <Reveal>
+              <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-brass">Sukabumi, West Java</p>
+              <h2 className="mt-2 font-serif text-2xl text-bone sm:text-3xl">From Our Quarry to {cn.name}</h2>
+            </Reveal>
+          </div>
+        </section>
+      )}
 
       {/* 06 SHIPPING & LOGISTICS TIMELINE */}
       <section className="container-x py-24">
@@ -263,12 +305,20 @@ export default function SupplierPage() {
             </div>
           </Reveal>
           <Reveal delay={0.1}>
-            <div className="border border-line bg-surface p-8">
-              <Leaf className="h-8 w-8 text-brass" />
-              <h3 className="mt-4 font-serif text-2xl text-bone">Commitment to the Planet</h3>
-              <p className="mt-4 text-sm leading-relaxed text-ash">
-                Stone is timeless. Our commitment is to source, produce and deliver {kw.name.toLowerCase()} responsibly, minimizing carbon footprint and protecting local ecosystems for future generations.
-              </p>
+            <div className="relative overflow-hidden border border-line p-8">
+              {sustainabilityImage && (
+                <>
+                  <img src={sustainabilityImage} alt="" className="absolute inset-0 h-full w-full object-cover opacity-20" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-ink/40 via-ink/80 to-ink" />
+                </>
+              )}
+              <div className="relative">
+                <Leaf className="h-8 w-8 text-brass" />
+                <h3 className="mt-4 font-serif text-2xl text-bone">Commitment to the Planet</h3>
+                <p className="mt-4 text-sm leading-relaxed text-ash">
+                  Stone is timeless. Our commitment is to source, produce and deliver {kw.name.toLowerCase()} responsibly, minimizing carbon footprint and protecting local ecosystems for future generations.
+                </p>
+              </div>
             </div>
           </Reveal>
         </div>
