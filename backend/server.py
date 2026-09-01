@@ -286,7 +286,7 @@ async def llms_txt():
         "> Factory-direct exporter of Sukabumi Green Stone (Pedra Bali), black lava stone and andesite from Sukabumi, West Java, Indonesia. Pool tiles, coping, mosaics, wall cladding and paving shipped worldwide to importers, pool builders, architects and resort developers.",
         "",
         f"Contact: giat@zeofa.com | WhatsApp +62 851-4156-7350 | Sukabumi, West Java, Indonesia",
-        f"Full machine-readable content: {SITE_URL}/api/llms-full.txt",
+        f"Full machine-readable content: {SITE_URL}/llms-full.txt",
         "",
         "## Pages",
         f"- [Home]({SITE_URL}/): Company overview, products, export process, FAQ",
@@ -591,6 +591,63 @@ app.include_router(api)
 
 # Serve uploaded images
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
+# Search engines and crawlers expect these at the domain root, not under /api.
+@app.get("/sitemap.xml")
+async def root_sitemap():
+    return await sitemap()
+
+
+@app.get("/llms.txt", response_class=PlainTextResponse)
+async def root_llms_txt():
+    return await llms_txt()
+
+
+@app.get("/llms-full.txt", response_class=PlainTextResponse)
+async def root_llms_full_txt():
+    return await llms_full_txt()
+
+
+@app.get("/robots.txt", response_class=PlainTextResponse)
+async def robots_txt():
+    lines = [
+        "User-agent: *",
+        "Allow: /",
+        "Disallow: /admin",
+        "",
+        "User-agent: GPTBot",
+        "Allow: /",
+        "",
+        "User-agent: ChatGPT-User",
+        "Allow: /",
+        "",
+        "User-agent: OAI-SearchBot",
+        "Allow: /",
+        "",
+        "User-agent: ClaudeBot",
+        "Allow: /",
+        "",
+        "User-agent: anthropic-ai",
+        "Allow: /",
+        "",
+        "User-agent: PerplexityBot",
+        "Allow: /",
+        "",
+        "User-agent: Google-Extended",
+        "Allow: /",
+        "",
+        "User-agent: Applebot-Extended",
+        "Allow: /",
+        "",
+        "User-agent: CCBot",
+        "Allow: /",
+        "",
+        "User-agent: meta-externalagent",
+        "Allow: /",
+        "",
+        f"Sitemap: {SITE_URL}/sitemap.xml",
+    ]
+    return "\n".join(lines)
 
 app.add_middleware(
     CORSMiddleware,
