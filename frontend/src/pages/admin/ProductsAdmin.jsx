@@ -1,82 +1,20 @@
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { api, apiError } from "@/lib/api";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import ImageUpload from "@/components/admin/ImageUpload";
-import MultiImageUpload from "@/components/admin/MultiImageUpload";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 
-const EMPTY = {
-  name: "", slug: "", category: "Pool Tiles", short_desc: "", description: "", image: "",
-  gallery: [], finishesText: "", sizesText: "", applicationsText: "",
-  featured: false, seo_title: "", seo_desc: "",
-};
-
-const toForm = (p) => ({
-  name: p.name, slug: p.slug, category: p.category, short_desc: p.short_desc,
-  description: p.description, image: p.image,
-  gallery: p.gallery || [],
-  finishesText: (p.finishes || []).join(", "),
-  sizesText: (p.sizes || []).join(", "),
-  applicationsText: (p.applications || []).join(", "),
-  featured: !!p.featured, seo_title: p.seo_title || "", seo_desc: p.seo_desc || "",
-});
-
-const toPayload = (f) => ({
-  name: f.name, slug: f.slug || undefined, category: f.category, short_desc: f.short_desc,
-  description: f.description, image: f.image,
-  gallery: f.gallery || [],
-  finishes: f.finishesText.split(",").map((s) => s.trim()).filter(Boolean),
-  sizes: f.sizesText.split(",").map((s) => s.trim()).filter(Boolean),
-  applications: f.applicationsText.split(",").map((s) => s.trim()).filter(Boolean),
-  featured: f.featured, seo_title: f.seo_title, seo_desc: f.seo_desc,
-});
-
 export default function ProductsAdmin() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [editing, setEditing] = useState(null); // null | 'new' | product
-  const [form, setForm] = useState(EMPTY);
-  const [saving, setSaving] = useState(false);
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["products"],
     queryFn: async () => (await api.get("/products")).data,
   });
-
-  const openNew = () => { setForm(EMPTY); setEditing("new"); };
-  const openEdit = (p) => { setForm(toForm(p)); setEditing(p); };
-  const close = () => setEditing(null);
-
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target ? e.target.value : e });
-
-  const save = async () => {
-    setSaving(true);
-    try {
-      if (editing === "new") {
-        await api.post("/admin/products", toPayload(form));
-        toast.success("Product created.");
-      } else {
-        await api.put(`/admin/products/${editing.id}`, toPayload(form));
-        toast.success("Product updated.");
-      }
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      close();
-    } catch (err) {
-      toast.error(apiError(err));
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const remove = async (p) => {
     if (!window.confirm(`Delete "${p.name}"? This cannot be undone.`)) return;
@@ -97,7 +35,7 @@ export default function ProductsAdmin() {
           <p className="mt-2 text-sm text-muted-foreground">The public catalogue at /products.</p>
         </div>
         <button
-          onClick={openNew}
+          onClick={() => navigate("/admin/products/new")}
           data-testid="product-add-btn"
           className="flex items-center gap-2 bg-moss px-5 py-3 text-xs uppercase tracking-[0.2em] text-white transition-colors hover:bg-mosslight"
         >
@@ -133,7 +71,7 @@ export default function ProductsAdmin() {
                   <TableCell className="text-sm text-muted-foreground">{p.category}</TableCell>
                   <TableCell className="text-sm">{p.featured ? <span className="text-brass">Yes</span> : <span className="text-muted-foreground">—</span>}</TableCell>
                   <TableCell className="text-right">
-                    <button data-testid={`product-edit-${p.slug}`} onClick={() => openEdit(p)} className="mr-3 text-muted-foreground transition-colors hover:text-brass" aria-label="Edit">
+                    <button data-testid={`product-edit-${p.slug}`} onClick={() => navigate(`/admin/products/${p.id}/edit`)} className="mr-3 text-muted-foreground transition-colors hover:text-brass" aria-label="Edit">
                       <Pencil className="h-4 w-4" />
                     </button>
                     <button data-testid={`product-delete-${p.slug}`} onClick={() => remove(p)} className="text-muted-foreground transition-colors hover:text-red-400" aria-label="Delete">
@@ -146,82 +84,6 @@ export default function ProductsAdmin() {
           </TableBody>
         </Table>
       </div>
-
-      <Dialog open={!!editing} onOpenChange={(open) => !open && close()}>
-        <DialogContent className="top-[5vh] max-h-[90vh] max-w-2xl translate-y-0 overflow-y-auto border-border bg-card text-bone" data-testid="product-dialog">
-          <DialogHeader>
-            <DialogTitle className="font-serif text-2xl">{editing === "new" ? "New Product" : "Edit Product"}</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Name *</Label>
-              <Input data-testid="product-form-name" value={form.name} onChange={set("name")} className="border-border bg-ink text-bone" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Slug (auto if empty)</Label>
-              <Input data-testid="product-form-slug" value={form.slug} onChange={set("slug")} className="border-border bg-ink font-mono text-xs text-bone" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Category</Label>
-              <Input data-testid="product-form-category" value={form.category} onChange={set("category")} className="border-border bg-ink text-bone" />
-            </div>
-            <div className="flex items-end gap-3 pb-1">
-              <Switch id="product-featured" data-testid="product-form-featured" checked={form.featured} onCheckedChange={(v) => set("featured")(v)} />
-              <Label htmlFor="product-featured" className="text-xs text-muted-foreground">Featured product</Label>
-            </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Short Description</Label>
-              <Input data-testid="product-form-short-desc" value={form.short_desc} onChange={set("short_desc")} className="border-border bg-ink text-bone" />
-            </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Full Description</Label>
-              <Textarea rows={4} data-testid="product-form-description" value={form.description} onChange={set("description")} className="border-border bg-ink text-bone" />
-            </div>
-            <div className="sm:col-span-2">
-              <ImageUpload
-                value={form.image}
-                onChange={set("image")}
-                label="Main Image (Upload or URL)"
-              />
-            </div>
-            <div className="sm:col-span-2" data-testid="product-form-gallery">
-              <MultiImageUpload
-                value={form.gallery}
-                onChange={set("gallery")}
-                label="Gallery Images (Upload or URL)"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Finishes (comma separated)</Label>
-              <Input data-testid="product-form-finishes" value={form.finishesText} onChange={set("finishesText")} className="border-border bg-ink text-bone" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Sizes (comma separated)</Label>
-              <Input data-testid="product-form-sizes" value={form.sizesText} onChange={set("sizesText")} className="border-border bg-ink text-bone" />
-            </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Applications (comma separated)</Label>
-              <Input data-testid="product-form-applications" value={form.applicationsText} onChange={set("applicationsText")} className="border-border bg-ink text-bone" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">SEO Title</Label>
-              <Input data-testid="product-form-seo-title" value={form.seo_title} onChange={set("seo_title")} className="border-border bg-ink text-bone" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">SEO Description</Label>
-              <Input data-testid="product-form-seo-desc" value={form.seo_desc} onChange={set("seo_desc")} className="border-border bg-ink text-bone" />
-            </div>
-          </div>
-          <button
-            onClick={save}
-            disabled={saving || !form.name}
-            data-testid="product-form-save"
-            className="mt-6 w-full bg-moss py-3 text-xs uppercase tracking-[0.25em] text-white transition-colors hover:bg-mosslight disabled:opacity-50"
-          >
-            {saving ? "Saving…" : "Save Product"}
-          </button>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

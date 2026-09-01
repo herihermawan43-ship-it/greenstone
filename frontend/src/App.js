@@ -25,6 +25,7 @@ import AdminLayout from "@/pages/admin/AdminLayout";
 import Dashboard from "@/pages/admin/Dashboard";
 import PageEditor from "@/pages/admin/PageEditor";
 import ProductsAdmin from "@/pages/admin/ProductsAdmin";
+import ProductEditor from "@/pages/admin/ProductEditor";
 import PostsAdmin from "@/pages/admin/PostsAdmin";
 import PostEditor from "@/pages/admin/PostEditor";
 import InquiriesAdmin from "@/pages/admin/InquiriesAdmin";
@@ -74,6 +75,8 @@ function App() {
               <Route index element={<Dashboard />} />
               <Route path="pages/:slug" element={<PageEditor />} />
               <Route path="products" element={<ProductsAdmin />} />
+              <Route path="products/new" element={<ProductEditor />} />
+              <Route path="products/:id/edit" element={<ProductEditor />} />
               <Route path="blog" element={<PostsAdmin />} />
               <Route path="blog/new" element={<PostEditor />} />
               <Route path="blog/:id/edit" element={<PostEditor />} />
