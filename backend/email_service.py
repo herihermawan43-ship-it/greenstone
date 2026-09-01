@@ -2,17 +2,23 @@ import os
 import re
 import ipaddress
 import logging
-import httpx
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from html import escape
 from html.parser import HTMLParser
 from urllib.parse import urlparse
 from dotenv import load_dotenv
+import aiosmtplib
 
 load_dotenv()
 logger = logging.getLogger(__name__)
 
-EMAIL_BASE_URL = "https://integrations.emergentagent.com"
-EMAIL_KEY = os.environ["EMERGENT_EMAIL_KEY"]
+SMTP_HOST = os.environ["SMTP_HOST"]
+SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+SMTP_USER = os.environ["SMTP_USER"]
+SMTP_PASSWORD = os.environ["SMTP_PASSWORD"]
+SMTP_USE_TLS = os.environ.get("SMTP_USE_TLS", "true").lower() != "false"
+EMAIL_FROM_ADDRESS = os.environ.get("EMAIL_FROM_ADDRESS", SMTP_USER)
 EMAIL_FROM_NAME = os.environ["EMAIL_FROM_NAME"]
 EMAIL_REPLY_TO = os.environ.get("EMAIL_REPLY_TO")
 OWNER_EMAIL = os.environ["OWNER_EMAIL"]
@@ -91,17 +97,23 @@ def _assert_safe_email(subject: str, html: str) -> None:
 
 async def send_email(*, to: str, subject: str, html: str) -> str | None:
     _assert_safe_email(subject, html)
-    payload = {"to": [to], "subject": subject, "html": html, "from_name": EMAIL_FROM_NAME}
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = f"{EMAIL_FROM_NAME} <{EMAIL_FROM_ADDRESS}>"
+    msg["To"] = to
     if EMAIL_REPLY_TO:
-        payload["contact_email"] = EMAIL_REPLY_TO
-    async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.post(
-            f"{EMAIL_BASE_URL}/api/v1/email/send",
-            headers={"X-Email-Key": EMAIL_KEY},
-            json=payload,
-        )
-    resp.raise_for_status()
-    return resp.json().get("id")
+        msg["Reply-To"] = EMAIL_REPLY_TO
+    msg.attach(MIMEText(html, "html"))
+
+    await aiosmtplib.send(
+        msg,
+        hostname=SMTP_HOST,
+        port=SMTP_PORT,
+        username=SMTP_USER,
+        password=SMTP_PASSWORD,
+        start_tls=SMTP_USE_TLS,
+    )
+    return None
 
 
 def _row(label: str, value: str) -> str:

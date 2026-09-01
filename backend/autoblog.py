@@ -7,18 +7,60 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 from dotenv import load_dotenv
-from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 load_dotenv()
 logger = logging.getLogger(__name__)
 
-EMERGENT_LLM_KEY = os.environ["EMERGENT_LLM_KEY"]
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
-MODELS = [
-    ("openai", "gpt-5.5"),
-    ("anthropic", "claude-sonnet-4-6"),
-    ("gemini", "gemini-3.1-pro-preview"),
+OPENAI_MODEL = os.environ.get("AUTOBLOG_OPENAI_MODEL", "gpt-4o")
+ANTHROPIC_MODEL = os.environ.get("AUTOBLOG_ANTHROPIC_MODEL", "claude-sonnet-5")
+GEMINI_MODEL = os.environ.get("AUTOBLOG_GEMINI_MODEL", "gemini-2.0-flash")
+
+_ALL_MODELS = [
+    ("openai", OPENAI_MODEL, OPENAI_API_KEY),
+    ("anthropic", ANTHROPIC_MODEL, ANTHROPIC_API_KEY),
+    ("gemini", GEMINI_MODEL, GEMINI_API_KEY),
 ]
+MODELS = [(provider, model) for provider, model, key in _ALL_MODELS if key]
+if not MODELS:
+    logger.warning(
+        "Autoblog: no LLM API keys configured (OPENAI_API_KEY / ANTHROPIC_API_KEY / "
+        "GEMINI_API_KEY). Auto-posting will fail until at least one is set."
+    )
+
+
+async def _call_llm(provider: str, model: str, system_msg: str, prompt: str) -> str:
+    if provider == "openai":
+        from openai import AsyncOpenAI
+        client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+        resp = await client.chat.completions.create(
+            model=model,
+            messages=[{"role": "system", "content": system_msg}, {"role": "user", "content": prompt}],
+        )
+        return resp.choices[0].message.content
+
+    if provider == "anthropic":
+        from anthropic import AsyncAnthropic
+        client = AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
+        resp = await client.messages.create(
+            model=model,
+            max_tokens=4096,
+            system=system_msg,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return "".join(block.text for block in resp.content if block.type == "text")
+
+    if provider == "gemini":
+        import google.generativeai as genai
+        genai.configure(api_key=GEMINI_API_KEY)
+        gmodel = genai.GenerativeModel(model, system_instruction=system_msg)
+        resp = await gmodel.generate_content_async(prompt)
+        return resp.text
+
+    raise ValueError(f"Unknown LLM provider: {provider}")
 
 TOPICS = [
     "Sukabumi Green Stone price guide for international importers",
@@ -78,6 +120,10 @@ def _parse_json(text: str) -> dict:
 
 
 async def generate_autoblog_post(db) -> dict:
+    if not MODELS:
+        raise RuntimeError(
+            "No LLM API keys configured. Set OPENAI_API_KEY, ANTHROPIC_API_KEY or GEMINI_API_KEY."
+        )
     state = await db.settings.find_one({"key": "autoblog"}) or dict(DEFAULT_AUTOBLOG)
     topic = TOPICS[state.get("topic_index", 0) % len(TOPICS)]
     provider, model = MODELS[state.get("model_index", 0) % len(MODELS)]
@@ -99,10 +145,8 @@ async def generate_autoblog_post(db) -> dict:
         "\"tags\": [3-5 short strings], \"seo_title\": str (max 60 chars), \"seo_desc\": str (max 155 chars)}"
     )
 
-    chat = LlmChat(api_key=EMERGENT_LLM_KEY, session_id=f"autoblog-{uuid.uuid4()}",
-                   system_message=SYSTEM_MSG).with_model(provider, model)
-    resp = await chat.send_message(UserMessage(text=prompt))
-    data = _parse_json(resp if isinstance(resp, str) else str(resp))
+    resp = await _call_llm(provider, model, SYSTEM_MSG, prompt)
+    data = _parse_json(resp)
 
     slug = _slugify(data["title"])
     if await db.posts.find_one({"slug": slug}):
