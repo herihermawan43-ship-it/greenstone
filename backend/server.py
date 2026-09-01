@@ -402,7 +402,10 @@ async def upload_image(file: UploadFile = File(...), user=Depends(get_current_us
             logger.error("Image processing failed, saving original: %s", e)
             processed, ext = contents, (file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else "jpg")
 
-    filename = f"{uuid.uuid4().hex[:12]}.{ext}"
+    # Keyword-rich filenames help image SEO — base it on the original filename
+    # (renamed by the admin before upload) rather than a pure random string.
+    base_name = file.filename.rsplit(".", 1)[0] if "." in file.filename else file.filename
+    filename = f"{slugify(base_name)[:60]}-{uuid.uuid4().hex[:6]}.{ext}"
     filepath = os.path.join("uploads", filename)
 
     os.makedirs("uploads", exist_ok=True)
