@@ -39,7 +39,8 @@ function Hero({ data }) {
           alt="Sukabumi green stone infinity pool at a luxury tropical resort"
           className="h-[120%] w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
+        <div className="absolute inset-0 bg-ink/45" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/55 to-ink/10" />
       </motion.div>
 
       <motion.div style={{ opacity }} className="container-x relative z-10 pb-24 pt-40">

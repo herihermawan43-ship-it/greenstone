@@ -28,7 +28,8 @@ export default function About() {
 
       <section data-testid="about-hero" className="relative flex min-h-[70vh] items-end overflow-hidden">
         <img src={c.hero.image} alt="Sukabumi green stone quarry and factory in West Java, Indonesia" className="absolute inset-0 h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/50 to-transparent" />
+        <div className="absolute inset-0 bg-ink/45" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/55 to-ink/10" />
         <div className="container-x relative z-10 pb-20 pt-48">
           <Reveal>
             <p className="overline-tag mb-6">{c.hero.overline}</p>
