@@ -337,7 +337,7 @@ async def llms_full_txt():
         out.append(p.get("description", ""))
     async for p in db.posts.find({"published": True}, {"_id": 0}):
         out.append(f"\n## Article: {p['title']} ({SITE_URL}/blog/{p['slug']})\n")
-        out.append(p.get("content", ""))
+        out.append(re.sub(r"<[^>]+>", " ", p.get("content", "")))
     out.append(f"\n## Export Markets ({len(COUNTRIES_INDEX)} countries)\n")
     for c in COUNTRIES_INDEX:
         out.append(f"- {c['name']} ({c['region_label']}): shipping to {c['port']}, details at {SITE_URL}/export/{c['slug']}")

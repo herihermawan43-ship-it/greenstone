@@ -5,6 +5,8 @@ import { api } from "@/lib/api";
 import SEO from "@/components/site/SEO";
 import { Reveal } from "@/components/site/Reveal";
 
+const isHtml = (s) => /<[a-z][\s\S]*>/i.test(s || "");
+
 const fmtDate = (iso) => {
   try {
     return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
@@ -87,13 +89,21 @@ export default function BlogPost() {
         </Reveal>
 
         <Reveal delay={0.15}>
-          <div className="prose-stone mt-12" data-testid="post-content">
-            {post.content.split(/\n\s*\n/).map((para, i) => (
-              <p key={i} className="mb-6 text-base leading-loose text-bone/80 first:font-serif first:text-xl first:leading-relaxed first:text-bone">
-                {para}
-              </p>
-            ))}
-          </div>
+          {isHtml(post.content) ? (
+            <div
+              className="prose prose-invert prose-stone mt-12 max-w-none"
+              data-testid="post-content"
+              dangerouslySetInnerHTML={{ __html: post.content }}
+            />
+          ) : (
+            <div className="mt-12" data-testid="post-content">
+              {post.content.split(/\n\s*\n/).map((para, i) => (
+                <p key={i} className="mb-6 text-base leading-loose text-bone/80 first:font-serif first:text-xl first:leading-relaxed first:text-bone">
+                  {para}
+                </p>
+              ))}
+            </div>
+          )}
           <footer className="mt-12 border-t border-line pt-8">
             <span className="text-xs uppercase tracking-[0.2em] text-ash">Written by {post.author}</span>
           </footer>

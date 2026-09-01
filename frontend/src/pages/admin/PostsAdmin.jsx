@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import ImageUpload from "@/components/admin/ImageUpload";
+import RichTextEditor from "@/components/admin/RichTextEditor";
+import SeoFields from "@/components/admin/SeoFields";
 
 const EMPTY = {
   title: "", slug: "", excerpt: "", content: "", image: "",
@@ -114,7 +116,7 @@ export default function PostsAdmin() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-serif text-4xl font-medium">Blog</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Journal articles shown at /blog. Paragraphs in content are separated by a blank line.</p>
+          <p className="mt-2 text-sm text-muted-foreground">Journal articles shown at /blog.</p>
         </div>
         <button
           onClick={openNew}
@@ -219,9 +221,8 @@ export default function PostsAdmin() {
               <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Excerpt</Label>
               <Textarea rows={2} data-testid="post-form-excerpt" value={form.excerpt} onChange={set("excerpt")} className="border-border bg-ink text-bone" />
             </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Content (blank line = new paragraph)</Label>
-              <Textarea rows={12} data-testid="post-form-content" value={form.content} onChange={set("content")} className="border-border bg-ink text-bone" />
+            <div className="sm:col-span-2">
+              <RichTextEditor value={form.content} onChange={set("content")} label="Content" />
             </div>
             <div className="sm:col-span-2">
               <ImageUpload
@@ -238,13 +239,15 @@ export default function PostsAdmin() {
               <Switch id="post-published" data-testid="post-form-published" checked={form.published} onCheckedChange={(v) => set("published")(v)} />
               <Label htmlFor="post-published" className="text-xs text-muted-foreground">Published</Label>
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">SEO Title</Label>
-              <Input data-testid="post-form-seo-title" value={form.seo_title} onChange={set("seo_title")} className="border-border bg-ink text-bone" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">SEO Description</Label>
-              <Input data-testid="post-form-seo-desc" value={form.seo_desc} onChange={set("seo_desc")} className="border-border bg-ink text-bone" />
+            <div className="sm:col-span-2">
+              <SeoFields
+                seoTitle={form.seo_title}
+                seoDesc={form.seo_desc}
+                onSeoTitleChange={set("seo_title")}
+                onSeoDescChange={set("seo_desc")}
+                fallbackTitle={form.title}
+                path={`/blog/${form.slug || "your-article-slug"}`}
+              />
             </div>
           </div>
           <button

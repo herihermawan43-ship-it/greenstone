@@ -81,8 +81,37 @@ module.exports = {
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out'
-      }
+      },
+      typography: () => ({
+        stone: {
+          css: {
+            '--tw-prose-body': '#e4e8e5cc',
+            '--tw-prose-headings': '#e4e8e5',
+            '--tw-prose-lead': '#e4e8e5',
+            '--tw-prose-links': '#c2a373',
+            '--tw-prose-bold': '#e4e8e5',
+            '--tw-prose-counters': '#8d9690',
+            '--tw-prose-bullets': '#c2a373',
+            '--tw-prose-hr': '#212823',
+            '--tw-prose-quotes': '#e4e8e5',
+            '--tw-prose-quote-borders': '#c2a373',
+            '--tw-prose-captions': '#8d9690',
+            '--tw-prose-code': '#e4e8e5',
+            '--tw-prose-pre-code': '#e4e8e5',
+            '--tw-prose-pre-bg': '#131714',
+            '--tw-prose-th-borders': '#212823',
+            '--tw-prose-td-borders': '#212823',
+            fontFamily: 'Manrope, ui-sans-serif, system-ui, sans-serif',
+            h1: { fontFamily: '"Cormorant Garamond", Georgia, serif' },
+            h2: { fontFamily: '"Cormorant Garamond", Georgia, serif' },
+            h3: { fontFamily: '"Cormorant Garamond", Georgia, serif' },
+            h4: { fontFamily: '"Cormorant Garamond", Georgia, serif' },
+            'a:hover': { color: '#e4e8e5' },
+            img: { borderRadius: '0' },
+          },
+        },
+      }),
     }
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
 };
