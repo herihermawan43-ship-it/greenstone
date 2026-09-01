@@ -17,7 +17,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
 
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, FileResponse
 
 from seed_data import PAGES, PRODUCTS, POSTS
 from email_service import notify_new_inquiry
@@ -648,3 +648,28 @@ async def startup():
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
+
+# Serve the built React frontend (if present) for every non-API, non-upload path,
+# with an SPA fallback to index.html so client-side routing works on refresh/deep links.
+FRONTEND_BUILD_DIR = os.environ.get(
+    "FRONTEND_BUILD_DIR", os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "frontend", "build")
+)
+
+if os.path.isdir(FRONTEND_BUILD_DIR):
+    static_dir = os.path.join(FRONTEND_BUILD_DIR, "static")
+    if os.path.isdir(static_dir):
+        app.mount("/static", StaticFiles(directory=static_dir), name="frontend-static")
+
+    _build_root = os.path.realpath(FRONTEND_BUILD_DIR)
+
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        candidate = os.path.realpath(os.path.join(_build_root, full_path))
+        is_inside = candidate == _build_root or candidate.startswith(_build_root + os.sep)
+        if full_path and is_inside and os.path.isfile(candidate):
+            return FileResponse(candidate)
+        return FileResponse(os.path.join(_build_root, "index.html"))
+else:
+    logger.warning("FRONTEND_BUILD_DIR not found (%s) — frontend will not be served by the API process.",
+                    FRONTEND_BUILD_DIR)
