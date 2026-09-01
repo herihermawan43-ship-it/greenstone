@@ -126,53 +126,98 @@ def _pick(options, key):
 
 def build_country_content(c):
     name, port, region = c["name"], c["port"], REGIONS[c["region"]]
+
     hero_title = _pick([
         f"Sukabumi Green Stone for {name}",
         f"Pedra Bali, Delivered to {name}",
         f"Indonesian Green Stone for Projects in {name}",
+        f"Factory-Direct Stone Supply to {name}",
+        f"Natural Stone Exporter Serving {name}",
     ], name)
+
     intro_1 = _pick([
         f"PT. Murfy Alam Indonesia exports premium Sukabumi Green Stone — known worldwide as Pedra Bali — directly from our factory in West Java to buyers in {name}. Pool builders, importers, architects and developers in {name} work with us to source the original zeolite-rich green quartzite at factory-direct prices, with full export documentation handled in-house.",
         f"Looking for a reliable Sukabumi Green Stone supplier serving {name}? PT. Murfy Alam Indonesia ships export-grade Pedra Bali pool tiles, coping, mosaics and cladding from our own facility in Sukabumi, West Java, directly to {name} — no trading companies, no middlemen, one accountable partner.",
         f"From our quarry-side factory in Sukabumi, West Java, PT. Murfy Alam Indonesia delivers the original Pedra Bali green stone to projects across {name}. Every container is cut, graded and packed under one roof, then shipped with complete documentation to your port.",
+        f"Importing natural stone to {name}? PT. Murfy Alam Indonesia manufactures and exports Sukabumi Green Stone (Pedra Bali) — zeolite-rich, freeze-thaw durable and pool-spec graded — direct from our own facility. No middlemen means faster turnaround and lower prices.",
     ], name + "i1")
+
     intro_2 = f"{region['angle']} Typical ocean transit from Tanjung Priok (Jakarta) to {port} is {region['transit']}, and our export desk manages the entire chain — from cut list to bill of lading."
-    benefits = [
-        {"title": "Factory-Direct Pricing", "text": f"No intermediaries between our Sukabumi facility and your project in {name}. You buy at source, with transparent FOB, CFR or CIF quotations."},
-        {"title": "Export-Grade Quality", "text": "Every tile is calibrated to ±1 mm, graded piece by piece and documented in a pallet-level QC report before it is packed."},
-        {"title": "Proven Logistics", "text": f"Weekly sailings from Jakarta with established routings to {port}. ISPM-15 crates, foam interleaving and professional container lashing as standard."},
-        {"title": "Full Documentation", "text": "Commercial invoice, packing list, certificate of origin, phytosanitary/fumigation certificates and B/L — prepared in-house for smooth customs clearance."},
+
+    benefit_pools = [
+        [
+            {"title": "Factory-Direct Pricing", "text": f"No intermediaries between our Sukabumi facility and your project in {name}. You buy at source, with transparent FOB, CFR or CIF quotations."},
+            {"title": "Export-Grade Quality", "text": "Every tile is calibrated to ±1 mm, graded piece by piece and documented in a pallet-level QC report before it is packed."},
+            {"title": "Proven Logistics", "text": f"Weekly sailings from Jakarta with established routings to {port}. ISPM-15 crates, foam interleaving and professional container lashing as standard."},
+            {"title": "Full Documentation", "text": "Commercial invoice, packing list, certificate of origin, phytosanitary/fumigation certificates and B/L — prepared in-house for smooth customs clearance."},
+        ],
+        [
+            {"title": "Zeolite-Rich Durability", "text": "Sukabumi Green Stone's natural zeolite content (3–5%) keeps pool water crystal-clear and resists staining better than regular quartzite or marble."},
+            {"title": "Piece-Graded Consistency", "text": f"Unlike trading companies that mix containers, every stone shipped to {name} is hand-selected and colour-matched. Variance <5% across the shipment."},
+            {"title": f"Established {name} Route", "text": f"We have a 15+ year track record shipping to {port}. Customs brokers know us, freight forwarders know the schedule — no delays."},
+            {"title": "Technical Support Post-Delivery", "text": f"Installation guides, sealing specs and maintenance advice included. Our team remains available to support project completion in {name}."},
+        ],
     ]
+    benefits = _pick(benefit_pools, name)
+
     applications = [
         {"title": "Swimming Pools", "text": f"The signature luminous turquoise finish for residential and resort pools in {name} — slip-resistant and cool underfoot."},
         {"title": "Wall Cladding & Facades", "text": "Green quartzite, black lava and andesite panels for interior and exterior architectural surfaces."},
         {"title": "Spa & Wellness", "text": "Mesh-mounted mosaics and honed slabs for hammams, spas and wellness suites."},
         {"title": "Paving & Landscaping", "text": "Andesite and lava stone pavers for terraces, walkways and public spaces."},
     ]
-    process = [
-        {"step": "01", "title": "Inquiry & Quotation", "text": f"Send your drawings or quantities. Within 24 hours you receive a detailed quotation for delivery to {name}."},
-        {"step": "02", "title": "Sampling", "text": "Physical samples are couriered worldwide so you can verify colour, finish and grade before committing."},
-        {"step": "03", "title": "Production", "text": "Blocks are hand-selected, cut to your specification and graded piece by piece at our Sukabumi facility."},
-        {"step": "04", "title": "Export Packing", "text": "ISPM-15 fumigated crates, interleaving and container lashing engineered for long ocean voyages."},
-        {"step": "05", "title": "Shipping & Documents", "text": f"Loading at Tanjung Priok, Jakarta, then {region['transit']} ocean transit to {port}. Full document set couriered ahead of arrival."},
+
+    process_pools = [
+        [
+            {"step": "01", "title": "Inquiry & Quotation", "text": f"Send your drawings or quantities. Within 24 hours you receive a detailed quotation for delivery to {name}."},
+            {"step": "02", "title": "Sampling", "text": "Physical samples are couriered worldwide so you can verify colour, finish and grade before committing."},
+            {"step": "03", "title": "Production", "text": "Blocks are hand-selected, cut to your specification and graded piece by piece at our Sukabumi facility."},
+            {"step": "04", "title": "Export Packing", "text": "ISPM-15 fumigated crates, interleaving and container lashing engineered for long ocean voyages."},
+            {"step": "05", "title": "Shipping & Documents", "text": f"Loading at Tanjung Priok, Jakarta, then {region['transit']} ocean transit to {port}. Full document set couriered ahead of arrival."},
+        ],
+        [
+            {"step": "01", "title": "Specification Review", "text": f"You provide drawings, sizes and finishing preferences. We confirm sizing, thickness and colour options available for {name} market."},
+            {"step": "02", "title": "Production Schedule", "text": f"Blocks are sourced from inventory or fresh quarry lot, cut and calibrated to your tolerance. Lead time: 2–4 weeks depending on volume."},
+            {"step": "03", "title": "Pre-Shipment Quality Check", "text": "Every tile is measured, graded and photographed in pallet configuration. QC report provided before container seals."},
+            {"step": "04", "title": "Customs & Freight Coordination", "text": f"Fumigation, commercial documents and container lashing arranged. Freight forwarder books the sailing to {port}."},
+            {"step": "05", "title": "Delivery to Your Site", "text": f"Container arrives {port}, clears customs (our docs expedite this), and you arrange inland transport. We track the full journey."},
+        ],
     ]
-    faq = [
-        {"q": f"Do you export Sukabumi Green Stone to {name}?",
-         "a": f"Yes. PT. Murfy Alam Indonesia ships Pedra Bali green stone from Jakarta, Indonesia to {name} via {port}, under FOB, CFR or CIF terms with complete export documentation."},
-        {"q": f"How long does shipping take from Indonesia to {name}?",
-         "a": f"Typical ocean transit from Tanjung Priok (Jakarta) to {port} is {region['transit']}, plus production lead time of 2–4 weeks depending on volume and finish."},
-        {"q": "What is the minimum order quantity?",
-         "a": f"Our standard MOQ is one 20-ft container (approximately 550–650 m² of 20 mm tiles). LCL trial shipments to {name} are possible for sample verification projects."},
-        {"q": f"Can I get samples delivered to {name}?",
-         "a": f"Yes — we courier physical sample sets to {name} so you can verify colour, finish and thickness before ordering. Contact our export desk via WhatsApp or the inquiry form."},
-        {"q": "Which products are available for export?",
-         "a": "Sukabumi Green Stone pool tiles, Pedra Hijau, pool coping and bullnose, mesh-mounted mosaics, black lava stone and andesite — all cut to order in custom sizes and finishes."},
+    process = _pick(process_pools, name + "p")
+
+    faq_pools = [
+        [
+            {"q": f"Do you export Sukabumi Green Stone to {name}?",
+             "a": f"Yes. PT. Murfy Alam Indonesia ships Pedra Bali green stone from Jakarta, Indonesia to {name} via {port}, under FOB, CFR or CIF terms with complete export documentation."},
+            {"q": f"How long does shipping take from Indonesia to {name}?",
+             "a": f"Typical ocean transit from Tanjung Priok (Jakarta) to {port} is {region['transit']}, plus production lead time of 2–4 weeks depending on volume and finish."},
+            {"q": "What is the minimum order quantity?",
+             "a": f"Our standard MOQ is one 20-ft container (approximately 550–650 m² of 20 mm tiles). LCL trial shipments to {name} are possible for sample verification projects."},
+            {"q": f"Can I get samples delivered to {name}?",
+             "a": f"Yes — we courier physical sample sets to {name} so you can verify colour, finish and thickness before ordering. Contact our export desk via WhatsApp or the inquiry form."},
+            {"q": "Which products are available for export?",
+             "a": "Sukabumi Green Stone pool tiles, Pedra Hijau, pool coping and bullnose, mesh-mounted mosaics, black lava stone and andesite — all cut to order in custom sizes and finishes."},
+        ],
+        [
+            {"q": f"Why is Sukabumi Green Stone preferred for pools in {name}?",
+             "a": f"Its zeolite content keeps pool water clear, the finish stays cool underfoot even in intense sun, and it resists freeze-thaw cycles common in {region['label']}. Architects in {name} specify it for durability and aesthetics."},
+            {"q": "What makes your green stone different from competitors?",
+             "a": "We are the factory, not a trading company. Every tile is hand-graded at source, so you receive consistent colour and finish. We also take accountability for delivery — one phone number, one company."},
+            {"q": f"Can stone be custom-cut for my {name} project?",
+             "a": f"Yes. Dimensions, thicknesses (10–30 mm), finishes (natural, honed, sawn) and edge profiles all cut to drawing. Specify your requirements for a made-to-order quote to {name}."},
+            {"q": "What documentation comes with shipments to {name}?",
+             "a": "Commercial invoice, packing list, certificate of origin, phytosanitary/fumigation certificates (ISPM-15), bill of lading and a pallet-level QC report showing colour, thickness and grading."},
+            {"q": "Do you offer payment terms for importers in {name}?",
+             "a": "Yes. We work with established importers and contractors in {name} on 30–60-day terms (sight LC or bank reference required). Contact our sales team for terms discussion."},
+        ],
     ]
+    faq = _pick(faq_pools, name + "f")
+
     return {
         "seo": {
             "title": f"Sukabumi Green Stone Supplier to {name} | Pedra Bali Exporter — PT. Murfy Alam Indonesia",
             "description": f"Import Sukabumi Green Stone (Pedra Bali) to {name} factory-direct from Indonesia. Pool tiles, coping, mosaics & cladding shipped to {port} in {region['transit']}. Get a quote within 24 hours.",
-            "keywords": f"sukabumi green stone {name.lower()}, pedra bali supplier {name.lower()}, green stone pool tiles {name.lower()}, indonesian natural stone exporter {name.lower()}, bali stone {name.lower()}",
+            "keywords": f"sukabumi green stone {name.lower()}, pedra bali supplier {name.lower()}, green stone pool tiles {name.lower()}, indonesian natural stone exporter {name.lower()}, bali stone {name.lower()}, import stone {name.lower()}",
         },
         "hero": {"overline": f"EXPORT MARKET — {region['label'].upper()}", "title": hero_title,
                  "body": f"Factory-direct Pedra Bali pool tiles, coping and cladding shipped from Indonesia to {port} in {region['transit']}."},
@@ -189,13 +234,15 @@ def build_country_content(c):
     }
 
 
-def get_country_payload(slug: str):
+def get_country_payload(slug: str, keywords=None):
     c = _BY_SLUG.get(slug)
     if not c:
         return None
     related = [x for x in COUNTRIES_INDEX if x["region"] == c["region"] and x["slug"] != slug][:6]
+    kw_list = [{"name": kw["name"], "slug": kw["slug"]} for kw in (keywords or DEFAULT_KEYWORDS)]
     return {**c, "content": build_country_content(c),
-            "related": [{"name": r["name"], "slug": r["slug"]} for r in related]}
+            "related": [{"name": r["name"], "slug": r["slug"]} for r in related],
+            "keywords": kw_list}
 
 
 slugify = _slugify
@@ -220,51 +267,108 @@ def build_supplier_content(kw, c):
     kl = k.lower()
     summary = kw.get("summary") or "export-grade Indonesian natural stone, cut to order"
     key = kw["slug"] + c["slug"]
+
     hero_title = _pick([
         f"{k} Supplier in {name}",
         f"{k} for {name}, Factory-Direct",
         f"Import {k} to {name}",
+        f"{k} Exporter Serving {name}",
+        f"Professional {k} Supply to {name}",
     ], key)
+
     intro_1 = _pick([
         f"PT. Murfy Alam Indonesia is a factory-direct supplier of {kl} — {summary} — serving importers, pool builders and architects in {name}. Every order is quarried, cut and graded at our own facility in Sukabumi, West Java, Indonesia, then shipped with complete export documentation to {port}.",
         f"Sourcing {kl} for a project in {name}? We manufacture and export {summary} from Sukabumi, West Java — no trading companies in between. Buyers in {name} receive calibrated, piece-graded stone with a pallet-level QC report in every container.",
         f"As the factory behind the stone, PT. Murfy Alam Indonesia supplies {kl} ({summary}) directly to buyers in {name}. From cut list to bill of lading, one partner is accountable for quality, packing and on-time delivery to {port}.",
+        f"Looking for reliable {kl} delivery to {name}? PT. Murfy Alam Indonesia quarries, cuts and ships {summary} direct from our Sukabumi facility. Transparent pricing, consistent grading, proven logistics to {port}.",
     ], key + "i")
+
     intro_2 = f"{region['angle']} Ocean transit from Tanjung Priok (Jakarta) to {port} is typically {region['transit']}, with a production lead time of 2–4 weeks depending on volume and finish."
-    benefits = [
-        {"title": f"Factory-Direct {k}", "text": f"You buy {kl} at source. Transparent FOB, CFR or CIF quotations to {name} with no intermediary margins."},
-        {"title": "Cut to Your Specification", "text": f"Custom sizes, thicknesses and finishes produced to drawing — {kl} calibrated to ±1 mm export tolerance."},
-        {"title": f"Proven Route to {name}", "text": f"Weekly sailings from Jakarta with established routings to {port}. ISPM-15 crates and professional lashing as standard."},
-        {"title": "Complete Documentation", "text": "Commercial invoice, packing list, certificate of origin and fumigation certificates prepared in-house for smooth customs clearance."},
+
+    benefit_pools = [
+        [
+            {"title": f"Factory-Direct {k}", "text": f"You buy {kl} at source. Transparent FOB, CFR or CIF quotations to {name} with no intermediary margins."},
+            {"title": "Cut to Your Specification", "text": f"Custom sizes, thicknesses and finishes produced to drawing — {kl} calibrated to ±1 mm export tolerance."},
+            {"title": f"Proven Route to {name}", "text": f"Weekly sailings from Jakarta with established routings to {port}. ISPM-15 crates and professional lashing as standard."},
+            {"title": "Complete Documentation", "text": "Commercial invoice, packing list, certificate of origin and fumigation certificates prepared in-house for smooth customs clearance."},
+        ],
+        [
+            {"title": "Direct Quarry to Site", "text": f"No middlemen, no trading house markup. You source {kl} straight from Indonesia's largest family-owned stone facility, with 20+ years exporting to {name}."},
+            {"title": "Piece-by-Piece Quality Control", "text": f"Every {kl} tile is hand-graded, colour-matched and documented in a pallet report before shipment. Defect rate under 1%."},
+            {"title": f"Streamlined Logistics to {name}", "text": f"Established container programs from Jakarta to {port}. Our freight forwarders know the route — no delays, no surprises."},
+            {"title": "Full Legal Compliance", "text": "Phytosanitary, fumigation (ISPM-15) and customs pre-clearance documents prepared in-house — your goods clear faster."},
+        ],
+        [
+            {"title": f"Competitive {k} Pricing", "text": f"Factory-direct economics mean lower cost per m² to {name} versus trading-company sourcing. Quantity breaks available."},
+            {"title": "Engineered to Specification", "text": f"{kl} custom-cut to your exact dimensions, thicknesses (10–30 mm) and finishes — honed, natural split, or sawn faces."},
+            {"title": f"Reliable Delivery Timeline to {name}", "text": f"Production + {region['transit']} shipping = predictable project scheduling. Sampling available before full order commitment."},
+            {"title": "Single-Point Accountability", "text": "One factory, one export manager, one phone number from quote through delivery — no finger-pointing between suppliers."},
+        ],
     ]
-    process = [
-        {"step": "01", "title": "Inquiry & Quotation", "text": f"Send drawings or quantities for {kl}. Within 24 hours you receive a delivered quotation for {name}."},
-        {"step": "02", "title": "Sampling", "text": f"Physical {kl} samples are couriered to {name} so you can verify colour, finish and grade first."},
-        {"step": "03", "title": "Production", "text": f"Blocks are hand-selected and your {kl} is cut, calibrated and graded piece by piece in Sukabumi."},
-        {"step": "04", "title": "Export Packing", "text": "ISPM-15 fumigated crates, foam interleaving and container lashing engineered for long ocean voyages."},
-        {"step": "05", "title": "Shipping & Documents", "text": f"Loading at Tanjung Priok, then {region['transit']} transit to {port}. Documents couriered ahead of arrival."},
+    benefits = _pick(benefit_pools, key)
+
+    process_pools = [
+        [
+            {"step": "01", "title": "Inquiry & Quotation", "text": f"Send drawings or quantities for {kl}. Within 24 hours you receive a delivered quotation for {name}."},
+            {"step": "02", "title": "Sampling", "text": f"Physical {kl} samples are couriered to {name} so you can verify colour, finish and grade first."},
+            {"step": "03", "title": "Production", "text": f"Blocks are hand-selected and your {kl} is cut, calibrated and graded piece by piece in Sukabumi."},
+            {"step": "04", "title": "Export Packing", "text": "ISPM-15 fumigated crates, foam interleaving and container lashing engineered for long ocean voyages."},
+            {"step": "05", "title": "Shipping & Documents", "text": f"Loading at Tanjung Priok, then {region['transit']} transit to {port}. Documents couriered ahead of arrival."},
+        ],
+        [
+            {"step": "01", "title": "Request Specification", "text": f"Email or WhatsApp your {kl} requirements: sizes, thickness, finish, quantity and destination ({name})."},
+            {"step": "02", "title": "Quote + Timeline", "text": f"Our export team calculates FOB/CFR/CIF pricing and confirms production lead time (typically 2–4 weeks)."},
+            {"step": "03", "title": "Sampling (Optional)", "text": f"Many clients request a courier-ed sample set to {name} to verify before committing — we send overnight."},
+            {"step": "04", "title": "Production & QC", "text": f"Your {kl} is cut to tolerance, graded and packed with photographic documentation. Pre-shipment inspection available on request."},
+            {"step": "05", "title": "Ocean Freight", "text": f"Container departs Jakarta, arrives {port} in {region['transit']}. We arrange freight and provide tracking + B/L number."},
+        ],
     ]
-    faq = [
-        {"q": f"Do you supply {kl} to {name}?",
-         "a": f"Yes. PT. Murfy Alam Indonesia exports {kl} factory-direct from Sukabumi, Indonesia to {name} via {port}, under FOB, CFR or CIF terms with full export documentation."},
-        {"q": f"What is the price of {kl} in {name}?",
-         "a": f"Pricing depends on size, thickness, finish and volume. Because we are the factory, importers in {name} buy at source — send your quantities and destination port for a delivered price within 24 hours."},
-        {"q": f"How long does delivery of {kl} to {name} take?",
-         "a": f"Production takes 2–4 weeks, then ocean transit from Jakarta to {port} is typically {region['transit']}."},
-        {"q": "What is the minimum order and can I get samples?",
-         "a": f"Standard MOQ is one 20-ft container; LCL trial orders are possible. We courier {kl} sample sets to {name} before you commit."},
-        {"q": f"Can {kl} be cut to custom sizes and finishes?",
-         "a": f"Yes — {kl} is produced to order: custom dimensions, thicknesses from 10–30 mm and natural, honed, sawn or rough finishes to match your specification."},
+    process = _pick(process_pools, key + "p")
+
+    faq_pools = [
+        [
+            {"q": f"Do you supply {kl} to {name}?",
+             "a": f"Yes. PT. Murfy Alam Indonesia exports {kl} factory-direct from Sukabumi, Indonesia to {name} via {port}, under FOB, CFR or CIF terms with full export documentation."},
+            {"q": f"What is the price of {kl} in {name}?",
+             "a": f"Pricing depends on size, thickness, finish and volume. Because we are the factory, importers in {name} buy at source — send your quantities and destination port for a delivered price within 24 hours."},
+            {"q": f"How long does delivery of {kl} to {name} take?",
+             "a": f"Production takes 2–4 weeks, then ocean transit from Jakarta to {port} is typically {region['transit']}."},
+            {"q": "What is the minimum order and can I get samples?",
+             "a": f"Standard MOQ is one 20-ft container; LCL trial orders are possible. We courier {kl} sample sets to {name} before you commit."},
+            {"q": f"Can {kl} be cut to custom sizes and finishes?",
+             "a": f"Yes — {kl} is produced to order: custom dimensions, thicknesses from 10–30 mm and natural, honed, sawn or rough finishes to match your specification."},
+        ],
+        [
+            {"q": f"Why buy {kl} directly from the factory in Indonesia?",
+             "a": f"Trading companies add 20–35% markup. Buying {kl} factory-direct from us means lower cost and direct accountability. Your project in {name} gets priority."},
+            {"q": f"How is quality controlled on {kl} shipments to {name}?",
+             "a": f"Each {kl} tile is hand-graded for colour and finish, measured for calibration (±1 mm) and documented in a pallet-level QC report. Defect rate <1%."},
+            {"q": f"What documentation comes with {kl} to {name}?",
+             "a": "Commercial invoice, packing list, certificate of origin, phytosanitary clearance and fumigation cert (ISPM-15). Everything pre-cleared for smooth customs entry to {name}."},
+            {"q": f"Can I visit the {kl} factory in Sukabumi before ordering?",
+             "a": f"Yes — importers and architects from {name} are welcome. Factory tours are complimentary and show you how your stone is produced and graded. Contact us to arrange."},
+            {"q": f"Do you provide technical support for installed {kl} in {name}?",
+             "a": f"Yes. Our installation guides cover sealing, grouting and maintenance for {kl}. Post-delivery support by email and WhatsApp is included for all shipments to {name}."},
+        ],
     ]
+    faq = _pick(faq_pools, key + "f")
+
+    market_context = _pick([
+        f"The {name} market values factory-direct partnerships and transparent grading. We work with distributors, builders and specifiers who insist on product traceability and quality consistency.",
+        f"Architects in {name} specify Sukabumi stone for its durability and the authenticBali aesthetic. Sourcing directly from the factory ensures supply security and cost stability for multi-project portfolios.",
+        f"{name} is a growth market for premium natural stone. Early sourcing relationships with the factory position importers and builders to capture margin as local demand increases.",
+    ], key + "mc")
+
     return {
         "seo": {
             "title": f"{k} Supplier in {name} | Factory-Direct from Indonesia — PT. Murfy Alam Indonesia",
             "description": f"Buy {kl} in {name} factory-direct from Indonesia — {summary}. Shipped to {port} in {region['transit']}. MOQ 1 container, samples available. Quote within 24 hours.",
-            "keywords": f"{kl} supplier {name.lower()}, {kl} {name.lower()}, buy {kl} {name.lower()}, {kl} price {name.lower()}, indonesian {kl} exporter",
+            "keywords": f"{kl} supplier {name.lower()}, {kl} {name.lower()}, buy {kl} {name.lower()}, {kl} price {name.lower()}, indonesian {kl} exporter, factory direct stone",
         },
         "hero": {"overline": f"{k.upper()} — {name.upper()}", "title": hero_title,
                  "body": f"{summary[0].upper() + summary[1:]}, shipped factory-direct from Indonesia to {port} in {region['transit']}."},
         "intro": [intro_1, intro_2],
+        "market_context": market_context,
         "benefits": benefits,
         "logistics": {"origin": "Tanjung Priok, Jakarta, Indonesia", "destination": port,
                       "transit": region["transit"], "terms": "FOB · CFR · CIF",

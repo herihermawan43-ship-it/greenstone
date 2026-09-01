@@ -1,7 +1,7 @@
 import { NavLink, Outlet, Navigate, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import {
-  LayoutDashboard, FileText, Info, Phone, Package, Newspaper, Inbox, LogOut, Globe, Tags,
+  LayoutDashboard, FileText, Info, Phone, Package, Newspaper, Inbox, LogOut, Globe, Tags, Network,
 } from "lucide-react";
 
 const nav = [
@@ -12,6 +12,7 @@ const nav = [
   { to: "/admin/products", label: "Products", icon: Package },
   { to: "/admin/blog", label: "Blog", icon: Newspaper },
   { to: "/admin/keywords", label: "SEO Keywords", icon: Tags },
+  { to: "/admin/seo-explorer", label: "Programmatic Pages", icon: Network },
   { to: "/admin/inquiries", label: "Inquiries", icon: Inbox },
 ];
 

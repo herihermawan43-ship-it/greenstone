@@ -228,7 +228,8 @@ async def list_countries():
 
 @api.get("/countries/{slug}")
 async def get_country(slug: str):
-    payload = get_country_payload(slug)
+    keywords = await db.keywords.find({}, {"_id": 0, "name": 1, "slug": 1}).sort("name", 1).to_list(200)
+    payload = get_country_payload(slug, keywords)
     if not payload:
         raise HTTPException(status_code=404, detail="Country not found")
     return payload

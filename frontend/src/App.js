@@ -29,6 +29,7 @@ import ProductsAdmin from "@/pages/admin/ProductsAdmin";
 import PostsAdmin from "@/pages/admin/PostsAdmin";
 import InquiriesAdmin from "@/pages/admin/InquiriesAdmin";
 import KeywordsAdmin from "@/pages/admin/KeywordsAdmin";
+import SeoExplorer from "@/pages/admin/SeoExplorer";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -89,6 +90,7 @@ function App() {
               <Route path="blog" element={<PostsAdmin />} />
               <Route path="inquiries" element={<InquiriesAdmin />} />
               <Route path="keywords" element={<KeywordsAdmin />} />
+              <Route path="seo-explorer" element={<SeoExplorer />} />
             </Route>
 
             <Route path="*" element={<SiteShell><NotFound /></SiteShell>} />

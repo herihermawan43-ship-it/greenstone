@@ -76,7 +76,7 @@ export default function SupplierPage() {
         </div>
       </section>
 
-      {/* 02 Intro + snapshot */}
+      {/* 02 Intro + snapshot + market context */}
       <section className="container-x py-24">
         <div className="grid gap-12 lg:grid-cols-12">
           <Reveal className="lg:col-span-7">
@@ -84,6 +84,11 @@ export default function SupplierPage() {
             {c.intro.map((p, i) => (
               <p key={i} className="mb-5 max-w-2xl text-base leading-relaxed text-ash sm:text-lg">{p}</p>
             ))}
+            {c.market_context && (
+              <div className="mt-8 border-t border-line pt-8">
+                <p className="text-sm leading-relaxed text-ash italic">{c.market_context}</p>
+              </div>
+            )}
           </Reveal>
           <Reveal delay={0.15} className="lg:col-span-5">
             <div className="border border-line bg-surface p-8" data-testid="supplier-logistics-card">

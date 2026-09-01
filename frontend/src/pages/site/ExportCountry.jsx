@@ -207,21 +207,40 @@ export default function ExportCountry() {
         </div>
       </section>
 
-      {/* 08 Related + CTA */}
+      {/* 08 Available Keywords + Related + CTA */}
       <section className="container-x py-24">
         <div className="grid gap-16 lg:grid-cols-12">
           <Reveal className="lg:col-span-5">
-            <SectionTag num="07" label="NEARBY MARKETS" />
-            <ul className="space-y-1">
-              {country.related.map((r) => (
-                <li key={r.slug}>
-                  <Link to={`/export/${r.slug}`} data-testid={`export-related-${r.slug}`} className="group flex items-center justify-between border-b border-line py-3 text-sm text-ash transition-colors hover:text-bone">
-                    {r.name}
-                    <ArrowUpRight className="h-4 w-4 text-brass opacity-0 transition-opacity group-hover:opacity-100" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <div className="space-y-12">
+              <div>
+                <SectionTag num="07" label="NEARBY MARKETS" />
+                <ul className="space-y-1">
+                  {country.related.map((r) => (
+                    <li key={r.slug}>
+                      <Link to={`/export/${r.slug}`} data-testid={`export-related-${r.slug}`} className="group flex items-center justify-between border-b border-line py-3 text-sm text-ash transition-colors hover:text-bone">
+                        {r.name}
+                        <ArrowUpRight className="h-4 w-4 text-brass opacity-0 transition-opacity group-hover:opacity-100" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {country.keywords && country.keywords.length > 0 && (
+                <div className="border-t border-line pt-8">
+                  <h3 className="mb-4 font-mono text-[10px] uppercase tracking-[0.25em] text-ash">All stone types for {country.name}</h3>
+                  <ul className="space-y-1">
+                    {country.keywords.map((kw) => (
+                      <li key={kw.slug}>
+                        <Link to={`/supplier/${kw.slug}/${country.slug}`} data-testid={`export-keyword-${kw.slug}`} className="group flex items-center justify-between border-b border-line py-2 text-xs text-ash transition-colors hover:text-bone">
+                          {kw.name}
+                          <ArrowUpRight className="h-3 w-3 text-brass opacity-0 transition-opacity group-hover:opacity-100" />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           </Reveal>
           <Reveal delay={0.1} className="lg:col-span-7">
             <div className="flex h-full flex-col justify-center border border-line bg-surface p-10">
