@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import ImageUpload from "@/components/admin/ImageUpload";
+import MultiImageUpload from "@/components/admin/MultiImageUpload";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -17,14 +18,14 @@ import {
 
 const EMPTY = {
   name: "", slug: "", category: "Pool Tiles", short_desc: "", description: "", image: "",
-  galleryText: "", finishesText: "", sizesText: "", applicationsText: "",
+  gallery: [], finishesText: "", sizesText: "", applicationsText: "",
   featured: false, seo_title: "", seo_desc: "",
 };
 
 const toForm = (p) => ({
   name: p.name, slug: p.slug, category: p.category, short_desc: p.short_desc,
   description: p.description, image: p.image,
-  galleryText: (p.gallery || []).join("\n"),
+  gallery: p.gallery || [],
   finishesText: (p.finishes || []).join(", "),
   sizesText: (p.sizes || []).join(", "),
   applicationsText: (p.applications || []).join(", "),
@@ -34,7 +35,7 @@ const toForm = (p) => ({
 const toPayload = (f) => ({
   name: f.name, slug: f.slug || undefined, category: f.category, short_desc: f.short_desc,
   description: f.description, image: f.image,
-  gallery: f.galleryText.split("\n").map((s) => s.trim()).filter(Boolean),
+  gallery: f.gallery || [],
   finishes: f.finishesText.split(",").map((s) => s.trim()).filter(Boolean),
   sizes: f.sizesText.split(",").map((s) => s.trim()).filter(Boolean),
   applications: f.applicationsText.split(",").map((s) => s.trim()).filter(Boolean),
@@ -147,7 +148,7 @@ export default function ProductsAdmin() {
       </div>
 
       <Dialog open={!!editing} onOpenChange={(open) => !open && close()}>
-        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto border-border bg-card text-bone" data-testid="product-dialog">
+        <DialogContent className="top-[5vh] max-h-[90vh] max-w-2xl translate-y-0 overflow-y-auto border-border bg-card text-bone" data-testid="product-dialog">
           <DialogHeader>
             <DialogTitle className="font-serif text-2xl">{editing === "new" ? "New Product" : "Edit Product"}</DialogTitle>
           </DialogHeader>
@@ -183,9 +184,12 @@ export default function ProductsAdmin() {
                 label="Main Image (Upload or URL)"
               />
             </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Gallery URLs (one per line)</Label>
-              <Textarea rows={3} data-testid="product-form-gallery" value={form.galleryText} onChange={set("galleryText")} className="border-border bg-ink font-mono text-xs text-bone" />
+            <div className="sm:col-span-2" data-testid="product-form-gallery">
+              <MultiImageUpload
+                value={form.gallery}
+                onChange={set("gallery")}
+                label="Gallery Images (Upload or URL)"
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Finishes (comma separated)</Label>

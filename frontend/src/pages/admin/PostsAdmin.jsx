@@ -198,7 +198,7 @@ export default function PostsAdmin() {
       </div>
 
       <Dialog open={!!editing} onOpenChange={(open) => !open && close()}>
-        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto border-border bg-card text-bone" data-testid="post-dialog">
+        <DialogContent className="top-[5vh] max-h-[90vh] max-w-2xl translate-y-0 overflow-y-auto border-border bg-card text-bone" data-testid="post-dialog">
           <DialogHeader>
             <DialogTitle className="font-serif text-2xl">{editing === "new" ? "New Article" : "Edit Article"}</DialogTitle>
           </DialogHeader>
