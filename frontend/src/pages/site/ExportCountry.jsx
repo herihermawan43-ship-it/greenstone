@@ -141,7 +141,7 @@ export default function ExportCountry() {
             <Reveal key={p.id} delay={i * 0.08}>
               <Link to={`/products/${p.slug}`} data-testid={`export-product-${p.slug}`} className="group block">
                 <div className="overflow-hidden">
-                  <img src={p.image} alt={`${p.name} for export to ${country.name}`} className="aspect-[4/3] w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                  <img src={p.image} alt={`${p.name} for export to ${country.name}`} className="aspect-[4/3] w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
                 </div>
                 <h3 className="mt-4 font-serif text-xl text-bone transition-colors group-hover:text-brass">{p.name}</h3>
                 <p className="mt-2 text-sm text-ash">{p.short_desc}</p>

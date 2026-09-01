@@ -48,6 +48,7 @@ export default function Products() {
                       src={p.image}
                       alt={`${p.name} — export grade natural stone from Indonesia`}
                       className="aspect-[4/3] w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      loading="lazy"
                     />
                     <span className="absolute left-4 top-4 bg-ink/80 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-brass backdrop-blur-sm">
                       {p.category}

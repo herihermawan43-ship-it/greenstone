@@ -27,7 +27,7 @@ export default function About() {
       <SEO title={c.seo.title} description={c.seo.description} keywords={c.seo.keywords} image={c.hero.image} path="/about" />
 
       <section data-testid="about-hero" className="relative flex min-h-[70vh] items-end overflow-hidden">
-        <img src={c.hero.image} alt="Sukabumi green stone quarry and factory in West Java, Indonesia" className="absolute inset-0 h-full w-full object-cover" />
+        <img src={c.hero.image} alt="Sukabumi green stone quarry and factory in West Java, Indonesia" className="absolute inset-0 h-full w-full object-cover" fetchPriority="high" />
         <div className="absolute inset-0 bg-ink/45" />
         <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/55 to-ink/10" />
         <div className="container-x relative z-10 pb-20 pt-48">
@@ -56,7 +56,7 @@ export default function About() {
           </div>
           <Reveal className="lg:col-span-5" delay={0.2} y={40}>
             <div className="relative ml-auto aspect-[3/4] w-full max-w-md overflow-hidden">
-              <img src={c.story.image} alt="Sukabumi green stone surface texture detail" className="h-full w-full object-cover transition-transform duration-700 hover:scale-105" />
+              <img src={c.story.image} alt="Sukabumi green stone surface texture detail" className="h-full w-full object-cover transition-transform duration-700 hover:scale-105" loading="lazy" />
               <div className="absolute inset-0 border border-bone/10" />
             </div>
           </Reveal>
@@ -100,7 +100,7 @@ export default function About() {
         <div className="container-x grid items-center gap-16 lg:grid-cols-2">
           <Reveal y={40}>
             <div className="overflow-hidden">
-              <img src={c.quarry.image} alt="Green marbled Sukabumi stone from the West Java quarry" className="aspect-[4/5] w-full object-cover transition-transform duration-700 hover:scale-105" />
+              <img src={c.quarry.image} alt="Green marbled Sukabumi stone from the West Java quarry" className="aspect-[4/5] w-full object-cover transition-transform duration-700 hover:scale-105" loading="lazy" />
             </div>
           </Reveal>
           <div>

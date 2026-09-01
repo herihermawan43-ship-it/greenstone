@@ -78,7 +78,7 @@ export default function Blog() {
                 <Reveal key={p.id} delay={(i % 3) * 0.08}>
                   <Link to={`/blog/${p.slug}`} data-testid={`blog-card-${p.slug}`} className="group block">
                     <div className="overflow-hidden">
-                      <img src={p.image} alt={p.title} className="aspect-[4/3] w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                      <img src={p.image} alt={p.title} className="aspect-[4/3] w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
                     </div>
                     <span className="mt-5 block font-mono text-[10px] uppercase tracking-[0.25em] text-brass">{fmtDate(p.created_at)}</span>
                     <h2 className="mt-3 font-serif text-2xl leading-snug text-bone transition-colors duration-300 group-hover:text-brass">{p.title}</h2>

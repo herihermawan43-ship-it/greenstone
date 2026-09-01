@@ -74,7 +74,7 @@ export default function SupplierPage() {
       <section className="relative overflow-hidden border-b border-line bg-surface">
         {heroImage && (
           <>
-            <img src={heroImage} alt="" className="absolute inset-0 h-full w-full object-cover opacity-25" />
+            <img src={heroImage} alt="" className="absolute inset-0 h-full w-full object-cover opacity-25" fetchPriority="high" />
             <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/90 to-ink/50" />
             <div className="absolute inset-0 bg-gradient-to-t from-ink via-transparent to-transparent" />
           </>
@@ -171,7 +171,7 @@ export default function SupplierPage() {
             <Reveal key={p.id} delay={i * 0.08}>
               <Link to={`/products/${p.slug}`} data-testid={`supplier-product-${p.slug}`} className="group block">
                 <div className="overflow-hidden">
-                  <img src={p.image} alt={`${p.name} — ${kw.name} export to ${cn.name}`} className="aspect-[4/3] w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                  <img src={p.image} alt={`${p.name} — ${kw.name} export to ${cn.name}`} className="aspect-[4/3] w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
                 </div>
                 <h3 className="mt-4 font-serif text-xl text-bone transition-colors group-hover:text-brass">{p.name}</h3>
                 <p className="mt-2 text-sm text-ash">{p.short_desc}</p>
@@ -200,7 +200,7 @@ export default function SupplierPage() {
           <div className="mt-12 grid gap-10 lg:grid-cols-12">
             {specsImage && (
               <Reveal className="lg:col-span-4">
-                <img src={specsImage} alt={`${kw.name} export-grade material`} className="aspect-[3/4] w-full object-cover" />
+                <img src={specsImage} alt={`${kw.name} export-grade material`} className="aspect-[3/4] w-full object-cover" loading="lazy" />
               </Reveal>
             )}
             <div className={`grid gap-8 sm:grid-cols-2 ${specsImage ? "lg:col-span-8" : "lg:col-span-12"}`}>
@@ -226,7 +226,7 @@ export default function SupplierPage() {
       {/* IMAGE BANNER BREAK */}
       {bannerImage && (
         <section className="relative h-72 overflow-hidden sm:h-96">
-          <img src={bannerImage} alt={`${kw.name} quarry to port`} className="h-full w-full object-cover" />
+          <img src={bannerImage} alt={`${kw.name} quarry to port`} className="h-full w-full object-cover" loading="lazy" />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-transparent" />
           <div className="container-x absolute inset-x-0 bottom-0 pb-10">
             <Reveal>
@@ -308,7 +308,7 @@ export default function SupplierPage() {
             <div className="relative overflow-hidden border border-line p-8">
               {sustainabilityImage && (
                 <>
-                  <img src={sustainabilityImage} alt="" className="absolute inset-0 h-full w-full object-cover opacity-20" />
+                  <img src={sustainabilityImage} alt="" className="absolute inset-0 h-full w-full object-cover opacity-20" loading="lazy" />
                   <div className="absolute inset-0 bg-gradient-to-b from-ink/40 via-ink/80 to-ink" />
                 </>
               )}

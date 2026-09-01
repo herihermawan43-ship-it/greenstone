@@ -38,6 +38,7 @@ function Hero({ data }) {
           src={data.image}
           alt="Sukabumi green stone infinity pool at a luxury tropical resort"
           className="h-[120%] w-full object-cover"
+          fetchPriority="high"
         />
         <div className="absolute inset-0 bg-ink/45" />
         <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/55 to-ink/10" />

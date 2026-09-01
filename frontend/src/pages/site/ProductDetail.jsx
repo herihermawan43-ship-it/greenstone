@@ -95,12 +95,13 @@ export default function ProductDetail() {
                 alt={`${product.name} — Sukabumi natural stone, export quality`}
                 className="aspect-[4/5] w-full object-cover transition-transform duration-700 hover:scale-105"
                 data-testid="product-main-image"
+                fetchPriority="high"
               />
             </div>
             {product.gallery?.length > 1 && (
               <div className="mt-4 grid grid-cols-3 gap-4" data-testid="product-gallery">
                 {product.gallery.slice(0, 3).map((g, i) => (
-                  <img key={i} src={g} alt={`${product.name} detail view ${i + 1}`} className="aspect-square w-full object-cover" />
+                  <img key={i} src={g} alt={`${product.name} detail view ${i + 1}`} className="aspect-square w-full object-cover" loading="lazy" />
                 ))}
               </div>
             )}
@@ -150,7 +151,7 @@ export default function ProductDetail() {
               {related.map((p) => (
                 <Link key={p.id} to={`/products/${p.slug}`} data-testid={`related-${p.slug}`} className="group block">
                   <div className="overflow-hidden">
-                    <img src={p.image} alt={`${p.name} natural stone`} className="aspect-[4/3] w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    <img src={p.image} alt={`${p.name} natural stone`} className="aspect-[4/3] w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
                   </div>
                   <h3 className="mt-4 font-serif text-xl text-bone transition-colors group-hover:text-brass">{p.name}</h3>
                   <p className="mt-1 text-sm text-ash">{p.short_desc}</p>
