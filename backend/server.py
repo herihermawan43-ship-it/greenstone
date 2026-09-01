@@ -11,10 +11,11 @@ from typing import Optional, List, Any, Dict
 
 import bcrypt
 import jwt
-from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends, UploadFile, File
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
+from fastapi.staticfiles import StaticFiles
 
 from fastapi.responses import PlainTextResponse
 
@@ -342,6 +343,33 @@ async def llms_full_txt():
     return "\n".join(out)
 
 
+# ---------- Admin File Upload ----------
+
+@api.post("/admin/upload/image")
+async def upload_image(file: UploadFile = File(...), user=Depends(get_current_user)):
+    """Upload image and return URL path"""
+    ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+    MAX_SIZE = 10 * 1024 * 1024  # 10MB
+
+    if file.content_type not in ALLOWED_TYPES:
+        raise HTTPException(status_code=400, detail="Only JPEG, PNG, WebP, and GIF images allowed")
+
+    contents = await file.read()
+    if len(contents) > MAX_SIZE:
+        raise HTTPException(status_code=400, detail="File too large (max 10MB)")
+
+    filename = f"{uuid.uuid4().hex[:12]}-{file.filename}"
+    filepath = os.path.join("uploads", filename)
+
+    os.makedirs("uploads", exist_ok=True)
+    with open(filepath, "wb") as f:
+        f.write(contents)
+
+    url = f"/uploads/{filename}"
+    logger.info("Image uploaded: %s", url)
+    return {"url": url, "filename": filename}
+
+
 # ---------- Admin ----------
 
 @api.get("/admin/stats")
@@ -530,6 +558,9 @@ async def run_autoblog(user=Depends(get_current_user)):
 
 
 app.include_router(api)
+
+# Serve uploaded images
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 app.add_middleware(
     CORSMiddleware,

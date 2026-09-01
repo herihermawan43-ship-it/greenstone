@@ -8,6 +8,7 @@ import { pageSchemas, pageTitles } from "./pageSchemas";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 function setDeep(obj, path, value) {
   const keys = path.split(".");
@@ -60,17 +61,12 @@ function renderField(spec, value, onChange, path) {
 
   if (spec.type === "image") {
     return (
-      <div className="space-y-1.5" data-testid={`field-${path.replace(/\./g, "-")}`}>
-        {label}
-        <Input
+      <div data-testid={`field-${path.replace(/\./g, "-")}`}>
+        <ImageUpload
           value={value ?? ""}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="https://…"
-          className="border-border bg-ink font-mono text-xs text-bone"
+          onChange={onChange}
+          label={spec.label}
         />
-        {value && (
-          <img src={value} alt="preview" className="mt-2 h-24 w-40 border border-border object-cover" />
-        )}
       </div>
     );
   }

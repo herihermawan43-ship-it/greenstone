@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import ImageUpload from "@/components/admin/ImageUpload";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -175,10 +176,12 @@ export default function ProductsAdmin() {
               <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Full Description</Label>
               <Textarea rows={4} data-testid="product-form-description" value={form.description} onChange={set("description")} className="border-border bg-ink text-bone" />
             </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Main Image URL</Label>
-              <Input data-testid="product-form-image" value={form.image} onChange={set("image")} className="border-border bg-ink font-mono text-xs text-bone" />
-              {form.image && <img src={form.image} alt="" className="mt-2 h-24 w-40 border border-border object-cover" />}
+            <div className="sm:col-span-2">
+              <ImageUpload
+                value={form.image}
+                onChange={set("image")}
+                label="Main Image (Upload or URL)"
+              />
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Gallery URLs (one per line)</Label>

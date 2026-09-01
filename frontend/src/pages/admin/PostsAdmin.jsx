@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 const EMPTY = {
   title: "", slug: "", excerpt: "", content: "", image: "",
@@ -222,10 +223,12 @@ export default function PostsAdmin() {
               <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Content (blank line = new paragraph)</Label>
               <Textarea rows={12} data-testid="post-form-content" value={form.content} onChange={set("content")} className="border-border bg-ink text-bone" />
             </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Image URL</Label>
-              <Input data-testid="post-form-image" value={form.image} onChange={set("image")} className="border-border bg-ink font-mono text-xs text-bone" />
-              {form.image && <img src={form.image} alt="" className="mt-2 h-24 w-40 border border-border object-cover" />}
+            <div className="sm:col-span-2">
+              <ImageUpload
+                value={form.image}
+                onChange={set("image")}
+                label="Feature Image (Upload or URL)"
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Tags (comma separated)</Label>
