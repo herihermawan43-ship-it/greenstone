@@ -1,4 +1,3 @@
-import os
 import re
 import json
 import uuid
@@ -8,34 +7,26 @@ import logging
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 
+from settings_service import get_settings
+
 load_dotenv()
 logger = logging.getLogger(__name__)
 
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
-OPENAI_MODEL = os.environ.get("AUTOBLOG_OPENAI_MODEL", "gpt-4o")
-ANTHROPIC_MODEL = os.environ.get("AUTOBLOG_ANTHROPIC_MODEL", "claude-sonnet-5")
-GEMINI_MODEL = os.environ.get("AUTOBLOG_GEMINI_MODEL", "gemini-2.0-flash")
-
-_ALL_MODELS = [
-    ("openai", OPENAI_MODEL, OPENAI_API_KEY),
-    ("anthropic", ANTHROPIC_MODEL, ANTHROPIC_API_KEY),
-    ("gemini", GEMINI_MODEL, GEMINI_API_KEY),
-]
-MODELS = [(provider, model) for provider, model, key in _ALL_MODELS if key]
-if not MODELS:
-    logger.warning(
-        "Autoblog: no LLM API keys configured (OPENAI_API_KEY / ANTHROPIC_API_KEY / "
-        "GEMINI_API_KEY). Auto-posting will fail until at least one is set."
-    )
+async def _available_models(db) -> list[tuple[str, str, str]]:
+    settings = await get_settings(db)
+    candidates = [
+        ("openai", settings.get("autoblog_openai_model"), settings.get("openai_api_key")),
+        ("anthropic", settings.get("autoblog_anthropic_model"), settings.get("anthropic_api_key")),
+        ("gemini", settings.get("autoblog_gemini_model"), settings.get("gemini_api_key")),
+    ]
+    return [(provider, model, key) for provider, model, key in candidates if key]
 
 
-async def _call_llm(provider: str, model: str, system_msg: str, prompt: str) -> str:
+async def _call_llm(provider: str, model: str, api_key: str, system_msg: str, prompt: str) -> str:
     if provider == "openai":
         from openai import AsyncOpenAI
-        client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+        client = AsyncOpenAI(api_key=api_key)
         resp = await client.chat.completions.create(
             model=model,
             messages=[{"role": "system", "content": system_msg}, {"role": "user", "content": prompt}],
@@ -44,7 +35,7 @@ async def _call_llm(provider: str, model: str, system_msg: str, prompt: str) -> 
 
     if provider == "anthropic":
         from anthropic import AsyncAnthropic
-        client = AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
+        client = AsyncAnthropic(api_key=api_key)
         resp = await client.messages.create(
             model=model,
             max_tokens=4096,
@@ -55,7 +46,7 @@ async def _call_llm(provider: str, model: str, system_msg: str, prompt: str) -> 
 
     if provider == "gemini":
         import google.generativeai as genai
-        genai.configure(api_key=GEMINI_API_KEY)
+        genai.configure(api_key=api_key)
         gmodel = genai.GenerativeModel(model, system_instruction=system_msg)
         resp = await gmodel.generate_content_async(prompt)
         return resp.text
@@ -120,13 +111,15 @@ def _parse_json(text: str) -> dict:
 
 
 async def generate_autoblog_post(db) -> dict:
-    if not MODELS:
+    models = await _available_models(db)
+    if not models:
         raise RuntimeError(
-            "No LLM API keys configured. Set OPENAI_API_KEY, ANTHROPIC_API_KEY or GEMINI_API_KEY."
+            "No LLM API keys configured. Set them in Admin > Settings, or via "
+            "OPENAI_API_KEY / ANTHROPIC_API_KEY / GEMINI_API_KEY in .env."
         )
     state = await db.settings.find_one({"key": "autoblog"}) or dict(DEFAULT_AUTOBLOG)
     topic = TOPICS[state.get("topic_index", 0) % len(TOPICS)]
-    provider, model = MODELS[state.get("model_index", 0) % len(MODELS)]
+    provider, model, api_key = models[state.get("model_index", 0) % len(models)]
 
     recent = await db.posts.find({}, {"_id": 0, "title": 1}).sort("created_at", -1).to_list(40)
     avoid = "; ".join(p["title"] for p in recent)
@@ -145,7 +138,7 @@ async def generate_autoblog_post(db) -> dict:
         "\"tags\": [3-5 short strings], \"seo_title\": str (max 60 chars), \"seo_desc\": str (max 155 chars)}"
     )
 
-    resp = await _call_llm(provider, model, SYSTEM_MSG, prompt)
+    resp = await _call_llm(provider, model, api_key, SYSTEM_MSG, prompt)
     data = _parse_json(resp)
 
     slug = _slugify(data["title"])
@@ -185,7 +178,7 @@ async def generate_autoblog_post(db) -> dict:
         {"key": "autoblog"},
         {"$set": {"last_run_date": datetime.now(timezone.utc).date().isoformat(), "last_error": None,
                   "topic_index": (state.get("topic_index", 0) + 1) % len(TOPICS),
-                  "model_index": (state.get("model_index", 0) + 1) % len(MODELS)}},
+                  "model_index": (state.get("model_index", 0) + 1) % len(models)}},
         upsert=True,
     )
     logger.info("Autoblog: published '%s' via %s/%s", post["title"], provider, model)

@@ -1,7 +1,7 @@
 import { NavLink, Outlet, Navigate, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import {
-  LayoutDashboard, FileText, Info, Phone, Package, Newspaper, Inbox, LogOut, Globe, Tags, Network,
+  LayoutDashboard, FileText, Info, Phone, Package, Newspaper, Inbox, LogOut, Globe, Tags, Network, Settings,
 } from "lucide-react";
 
 const nav = [
@@ -14,6 +14,7 @@ const nav = [
   { to: "/admin/keywords", label: "SEO Keywords", icon: Tags },
   { to: "/admin/seo-explorer", label: "Programmatic Pages", icon: Network },
   { to: "/admin/inquiries", label: "Inquiries", icon: Inbox },
+  { to: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
 export default function AdminLayout() {

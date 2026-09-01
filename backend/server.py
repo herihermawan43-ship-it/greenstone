@@ -23,6 +23,7 @@ from seed_data import PAGES, PRODUCTS, POSTS
 from email_service import notify_new_inquiry
 from countries_data import COUNTRIES_INDEX, get_country_payload, get_supplier_payload, DEFAULT_KEYWORDS
 from autoblog import generate_autoblog_post, autoblog_loop, DEFAULT_AUTOBLOG
+from settings_service import get_display_settings, save_settings
 
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
@@ -218,7 +219,7 @@ async def create_inquiry(body: InquiryIn):
     doc.update({"id": str(uuid.uuid4()), "status": "new", "created_at": utcnow().isoformat()})
     await db.inquiries.insert_one(doc)
     doc.pop("_id", None)
-    asyncio.create_task(notify_new_inquiry(doc))
+    asyncio.create_task(notify_new_inquiry(db, doc))
     return {"message": "Inquiry received", "id": doc["id"]}
 
 
@@ -494,6 +495,24 @@ class AutoblogIn(BaseModel):
     hour_utc: int = 2
 
 
+class IntegrationSettingsIn(BaseModel):
+    openai_api_key: Optional[str] = None
+    anthropic_api_key: Optional[str] = None
+    gemini_api_key: Optional[str] = None
+    autoblog_openai_model: Optional[str] = None
+    autoblog_anthropic_model: Optional[str] = None
+    autoblog_gemini_model: Optional[str] = None
+    smtp_host: Optional[str] = None
+    smtp_port: Optional[int] = None
+    smtp_user: Optional[str] = None
+    smtp_password: Optional[str] = None
+    smtp_use_tls: Optional[bool] = None
+    email_from_address: Optional[str] = None
+    email_from_name: Optional[str] = None
+    email_reply_to: Optional[str] = None
+    owner_email: Optional[str] = None
+
+
 class KeywordIn(BaseModel):
     name: str
     slug: str = ""
@@ -555,6 +574,17 @@ async def run_autoblog(user=Depends(get_current_user)):
     except Exception as e:
         logger.error("Autoblog manual run failed: %s", e)
         raise HTTPException(status_code=500, detail=f"Article generation failed: {str(e)[:200]}")
+
+
+@api.get("/admin/settings")
+async def get_settings_endpoint(user=Depends(get_current_user)):
+    return await get_display_settings(db)
+
+
+@api.put("/admin/settings")
+async def put_settings_endpoint(body: IntegrationSettingsIn, user=Depends(get_current_user)):
+    await save_settings(db, body.model_dump(exclude_unset=True))
+    return await get_display_settings(db)
 
 
 app.include_router(api)

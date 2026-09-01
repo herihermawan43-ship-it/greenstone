@@ -1,4 +1,3 @@
-import os
 import re
 import ipaddress
 import logging
@@ -10,18 +9,10 @@ from urllib.parse import urlparse
 from dotenv import load_dotenv
 import aiosmtplib
 
+from settings_service import get_settings
+
 load_dotenv()
 logger = logging.getLogger(__name__)
-
-SMTP_HOST = os.environ["SMTP_HOST"]
-SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
-SMTP_USER = os.environ["SMTP_USER"]
-SMTP_PASSWORD = os.environ["SMTP_PASSWORD"]
-SMTP_USE_TLS = os.environ.get("SMTP_USE_TLS", "true").lower() != "false"
-EMAIL_FROM_ADDRESS = os.environ.get("EMAIL_FROM_ADDRESS", SMTP_USER)
-EMAIL_FROM_NAME = os.environ["EMAIL_FROM_NAME"]
-EMAIL_REPLY_TO = os.environ.get("EMAIL_REPLY_TO")
-OWNER_EMAIL = os.environ["OWNER_EMAIL"]
 
 _SHORTENERS = ("bit.ly", "tinyurl.com", "t.co", "is.gd", "cutt.ly", "goo.gl", "rebrand.ly")
 _CRED_ASK = ("reply with your password", "reply with the code", "send your password", "cvv",
@@ -95,25 +86,31 @@ def _assert_safe_email(subject: str, html: str) -> None:
                 raise ValueError(f"Anchor text {m.group(1)!r} != real link host {real!r} (G3)")
 
 
-async def send_email(*, to: str, subject: str, html: str) -> str | None:
+async def send_email(db, *, to: str, subject: str, html: str) -> None:
     _assert_safe_email(subject, html)
+    settings = await get_settings(db)
+    if not settings.get("smtp_host") or not settings.get("smtp_user") or not settings.get("smtp_password"):
+        raise RuntimeError("SMTP is not configured (set it in Admin > Settings or via .env)")
+
+    from_address = settings.get("email_from_address") or settings["smtp_user"]
+    from_name = settings.get("email_from_name") or "Website"
+
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
-    msg["From"] = f"{EMAIL_FROM_NAME} <{EMAIL_FROM_ADDRESS}>"
+    msg["From"] = f"{from_name} <{from_address}>"
     msg["To"] = to
-    if EMAIL_REPLY_TO:
-        msg["Reply-To"] = EMAIL_REPLY_TO
+    if settings.get("email_reply_to"):
+        msg["Reply-To"] = settings["email_reply_to"]
     msg.attach(MIMEText(html, "html"))
 
     await aiosmtplib.send(
         msg,
-        hostname=SMTP_HOST,
-        port=SMTP_PORT,
-        username=SMTP_USER,
-        password=SMTP_PASSWORD,
-        start_tls=SMTP_USE_TLS,
+        hostname=settings["smtp_host"],
+        port=settings["smtp_port"],
+        username=settings["smtp_user"],
+        password=settings["smtp_password"],
+        start_tls=settings["smtp_use_tls"],
     )
-    return None
 
 
 def _row(label: str, value: str) -> str:
@@ -122,8 +119,15 @@ def _row(label: str, value: str) -> str:
             f'<td style="padding:8px 12px;font-size:14px;color:#1c211b">{escape(value) or "—"}</td></tr>')
 
 
-async def notify_new_inquiry(doc: dict) -> None:
+async def notify_new_inquiry(db, doc: dict) -> None:
     try:
+        settings = await get_settings(db)
+        owner_email = settings.get("owner_email")
+        from_name = settings.get("email_from_name") or "Website"
+        if not owner_email:
+            logger.warning("Inquiry notification skipped: no owner_email configured")
+            return
+
         subject = f"New website inquiry from {doc.get('name', 'a visitor')}"
         rows = "".join([
             _row("Name", doc.get("name", "")),
@@ -141,7 +145,7 @@ async def notify_new_inquiry(doc: dict) -> None:
             'font-family:Arial,sans-serif">'
             '<tr><td style="background:#101510;padding:20px 24px">'
             f'<span style="color:#c9a86a;font-size:11px;letter-spacing:3px;text-transform:uppercase">'
-            f'{escape(EMAIL_FROM_NAME)}</span><br>'
+            f'{escape(from_name)}</span><br>'
             '<span style="color:#f2f1ec;font-size:20px;font-weight:bold">New Inquiry Received</span>'
             '</td></tr>'
             '<tr><td style="padding:16px 12px"><table role="presentation" width="100%">'
@@ -149,11 +153,11 @@ async def notify_new_inquiry(doc: dict) -> None:
             '<tr><td style="padding:16px 24px;border-top:1px solid #e3e3dd">'
             '<p style="font-size:13px;color:#4a4f45;margin:0">Open your admin dashboard '
             '(Admin &rsaquo; Inquiries) to view and manage this inquiry.</p>'
-            f'<p style="font-size:11px;color:#9a9a92;margin:12px 0 0">Sent by {escape(EMAIL_FROM_NAME)} '
+            f'<p style="font-size:11px;color:#9a9a92;margin:12px 0 0">Sent by {escape(from_name)} '
             'website. We never ask for passwords or payment details by email.</p>'
             '</td></tr></table></td></tr></table>'
         )
-        email_id = await send_email(to=OWNER_EMAIL, subject=subject, html=html)
-        logger.info("Inquiry notification email sent: %s", email_id)
+        await send_email(db, to=owner_email, subject=subject, html=html)
+        logger.info("Inquiry notification email sent to %s", owner_email)
     except Exception as e:
         logger.error("Inquiry notification email failed: %s", e)
