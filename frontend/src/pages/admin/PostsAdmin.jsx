@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Sparkles, Loader2 } from "lucide-react";
 import { api, apiError } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,10 +34,42 @@ export default function PostsAdmin() {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
 
+  const [generating, setGenerating] = useState(false);
+
   const { data: posts, isLoading } = useQuery({
     queryKey: ["admin-posts"],
     queryFn: async () => (await api.get("/admin/posts-all")).data,
   });
+
+  const { data: autoblog } = useQuery({
+    queryKey: ["autoblog"],
+    queryFn: async () => (await api.get("/admin/autoblog")).data,
+  });
+
+  const toggleAutoblog = async (enabled) => {
+    try {
+      await api.put("/admin/autoblog", { enabled, hour_utc: autoblog?.hour_utc ?? 2 });
+      queryClient.invalidateQueries({ queryKey: ["autoblog"] });
+      toast.success(enabled ? "Daily AI auto-posting enabled." : "Daily AI auto-posting paused.");
+    } catch (err) {
+      toast.error(apiError(err));
+    }
+  };
+
+  const generateNow = async () => {
+    setGenerating(true);
+    try {
+      const { data } = await api.post("/admin/autoblog/run");
+      toast.success(`AI article published: "${data.title}"`);
+      queryClient.invalidateQueries({ queryKey: ["admin-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["autoblog"] });
+    } catch (err) {
+      toast.error(apiError(err));
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const openNew = () => { setForm(EMPTY); setEditing("new"); };
   const openEdit = (p) => { setForm(toForm(p)); setEditing(p); };
@@ -92,7 +124,37 @@ export default function PostsAdmin() {
         </button>
       </div>
 
-      <div className="mt-8 border border-border bg-card">
+      <div className="mt-8 border border-border bg-card p-6" data-testid="autoblog-panel">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="flex items-center gap-2 font-serif text-xl">
+              <Sparkles className="h-4 w-4 text-brass" /> AI Auto-Posting
+            </h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Publishes 1 SEO article per day automatically (rotating GPT-5.5, Claude Sonnet 4.6 & Gemini 3.1 Pro).
+              {autoblog?.last_run_date && <> Last article: {autoblog.last_run_date}.</>}
+              {autoblog?.last_error && <span className="text-red-400"> Last error: {autoblog.last_error}</span>}
+            </p>
+          </div>
+          <div className="flex items-center gap-5">
+            <div className="flex items-center gap-2">
+              <Switch data-testid="autoblog-toggle" checked={!!autoblog?.enabled} onCheckedChange={toggleAutoblog} />
+              <span className="text-xs text-muted-foreground">{autoblog?.enabled ? "On" : "Off"}</span>
+            </div>
+            <button
+              onClick={generateNow}
+              disabled={generating}
+              data-testid="autoblog-generate-btn"
+              className="flex items-center gap-2 border border-brass/50 px-5 py-2.5 text-xs uppercase tracking-[0.2em] text-brass transition-colors hover:bg-brass hover:text-ink disabled:opacity-60"
+            >
+              {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+              {generating ? "Writing…" : "Generate Now"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-6 border border-border bg-card">
         <Table>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
@@ -108,7 +170,10 @@ export default function PostsAdmin() {
               (posts || []).map((p) => (
                 <TableRow key={p.id} className="border-border" data-testid={`post-row-${p.slug}`}>
                   <TableCell>
-                    <div className="text-sm text-bone">{p.title}</div>
+                    <div className="text-sm text-bone">
+                      {p.title}
+                      {p.ai_generated && <span className="ml-2 rounded-sm bg-brass/15 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-brass">AI</span>}
+                    </div>
                     <div className="font-mono text-[10px] text-muted-foreground">/{p.slug}</div>
                   </TableCell>
                   <TableCell>

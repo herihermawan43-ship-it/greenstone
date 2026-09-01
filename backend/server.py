@@ -16,8 +16,12 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
 
+from fastapi.responses import PlainTextResponse
+
 from seed_data import PAGES, PRODUCTS, POSTS
 from email_service import notify_new_inquiry
+from countries_data import COUNTRIES_INDEX, get_country_payload, get_supplier_payload, DEFAULT_KEYWORDS
+from autoblog import generate_autoblog_post, autoblog_loop, DEFAULT_AUTOBLOG
 
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
@@ -217,17 +221,124 @@ async def create_inquiry(body: InquiryIn):
     return {"message": "Inquiry received", "id": doc["id"]}
 
 
+@api.get("/countries")
+async def list_countries():
+    return COUNTRIES_INDEX
+
+
+@api.get("/countries/{slug}")
+async def get_country(slug: str):
+    payload = get_country_payload(slug)
+    if not payload:
+        raise HTTPException(status_code=404, detail="Country not found")
+    return payload
+
+
+@api.get("/keywords")
+async def list_keywords():
+    return await db.keywords.find({}, {"_id": 0}).sort("name", 1).to_list(200)
+
+
+@api.get("/supplier/{kw_slug}/{country_slug}")
+async def get_supplier(kw_slug: str, country_slug: str):
+    kw = await db.keywords.find_one({"slug": kw_slug}, {"_id": 0})
+    if not kw:
+        raise HTTPException(status_code=404, detail="Keyword not found")
+    payload = get_supplier_payload(kw, country_slug)
+    if not payload:
+        raise HTTPException(status_code=404, detail="Country not found")
+    payload["other_keywords"] = await db.keywords.find(
+        {"slug": {"$ne": kw_slug}}, {"_id": 0, "name": 1, "slug": 1}).sort("name", 1).to_list(50)
+    return payload
+
+
 @api.get("/sitemap.xml")
 async def sitemap():
     base = SITE_URL
-    static_paths = ["", "/about", "/contact", "/products", "/blog"]
+    today = utcnow().date().isoformat()
+    static_paths = ["", "/about", "/contact", "/products", "/blog", "/export"]
     products = await db.products.find({}, {"_id": 0, "slug": 1, "updated_at": 1}).to_list(500)
     posts = await db.posts.find({"published": True}, {"_id": 0, "slug": 1, "updated_at": 1}).to_list(500)
-    urls = [f"<url><loc>{base}{p}</loc></url>" for p in static_paths]
-    urls += [f"<url><loc>{base}/products/{p['slug']}</loc></url>" for p in products]
-    urls += [f"<url><loc>{base}/blog/{p['slug']}</loc></url>" for p in posts]
+
+    def lm(doc):
+        return f"<lastmod>{str(doc.get('updated_at', today))[:10]}</lastmod>"
+
+    urls = [f"<url><loc>{base}{p}</loc><lastmod>{today}</lastmod></url>" for p in static_paths]
+    urls += [f"<url><loc>{base}/products/{p['slug']}</loc>{lm(p)}</url>" for p in products]
+    urls += [f"<url><loc>{base}/blog/{p['slug']}</loc>{lm(p)}</url>" for p in posts]
+    urls += [f"<url><loc>{base}/export/{c['slug']}</loc></url>" for c in COUNTRIES_INDEX]
+    keywords = await db.keywords.find({}, {"_id": 0, "slug": 1}).to_list(200)
+    urls += [f"<url><loc>{base}/supplier/{k['slug']}/{c['slug']}</loc></url>" for k in keywords for c in COUNTRIES_INDEX]
     xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + "".join(urls) + "</urlset>"
     return Response(content=xml, media_type="application/xml")
+
+
+@api.get("/llms.txt", response_class=PlainTextResponse)
+async def llms_txt():
+    products = await db.products.find({}, {"_id": 0, "name": 1, "slug": 1, "short_desc": 1}).to_list(500)
+    posts = await db.posts.find({"published": True}, {"_id": 0, "title": 1, "slug": 1, "excerpt": 1}).sort("created_at", -1).to_list(50)
+    lines = [
+        "# PT. Murfy Alam Indonesia",
+        "",
+        "> Factory-direct exporter of Sukabumi Green Stone (Pedra Bali), black lava stone and andesite from Sukabumi, West Java, Indonesia. Pool tiles, coping, mosaics, wall cladding and paving shipped worldwide to importers, pool builders, architects and resort developers.",
+        "",
+        f"Contact: giat@zeofa.com | WhatsApp +62 851-4156-7350 | Sukabumi, West Java, Indonesia",
+        f"Full machine-readable content: {SITE_URL}/api/llms-full.txt",
+        "",
+        "## Pages",
+        f"- [Home]({SITE_URL}/): Company overview, products, export process, FAQ",
+        f"- [About Us]({SITE_URL}/about): Story, quarry, certifications",
+        f"- [Products]({SITE_URL}/products): Export-grade natural stone catalogue",
+        f"- [Export Markets]({SITE_URL}/export): Country-by-country shipping and supply information",
+        f"- [Journal]({SITE_URL}/blog): Technical guides and industry articles",
+        f"- [Contact]({SITE_URL}/contact): Quotation requests, replies within 24 hours",
+        "",
+        "## Products",
+    ]
+    lines += [f"- [{p['name']}]({SITE_URL}/products/{p['slug']}): {p.get('short_desc', '')}" for p in products]
+    lines += ["", "## Articles"]
+    lines += [f"- [{p['title']}]({SITE_URL}/blog/{p['slug']}): {p.get('excerpt', '')}" for p in posts]
+    lines += ["", "## Export Markets",
+              f"We ship to {len(COUNTRIES_INDEX)} countries. Each market page covers ports, transit times, MOQ and FAQ:"]
+    lines += [f"- [{c['name']}]({SITE_URL}/export/{c['slug']})" for c in COUNTRIES_INDEX]
+    return "\n".join(lines)
+
+
+@api.get("/llms-full.txt", response_class=PlainTextResponse)
+async def llms_full_txt():
+    out = [
+        "# PT. Murfy Alam Indonesia — Full Content",
+        "",
+        "Factory-direct exporter of Sukabumi Green Stone (Pedra Bali), black lava stone and andesite from Sukabumi, West Java, Indonesia.",
+        "Contact: giat@zeofa.com | WhatsApp +62 851-4156-7350 | Sukabumi, West Java, Indonesia",
+        "",
+    ]
+
+    def walk(obj, depth=0):
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                if k in ("seo", "image", "images", "gallery"):
+                    continue
+                walk(v, depth)
+        elif isinstance(obj, list):
+            for v in obj:
+                walk(v, depth)
+        elif isinstance(obj, str) and len(obj) > 2 and not obj.startswith("http"):
+            out.append(obj)
+
+    async for page in db.pages.find({}, {"_id": 0}):
+        out.append(f"\n## Page: {page['slug']}\n")
+        walk(page.get("content", {}))
+    async for p in db.products.find({}, {"_id": 0}):
+        out.append(f"\n## Product: {p['name']} ({SITE_URL}/products/{p['slug']})\n")
+        out.append(p.get("description", ""))
+    async for p in db.posts.find({"published": True}, {"_id": 0}):
+        out.append(f"\n## Article: {p['title']} ({SITE_URL}/blog/{p['slug']})\n")
+        out.append(p.get("content", ""))
+    out.append(f"\n## Export Markets ({len(COUNTRIES_INDEX)} countries)\n")
+    for c in COUNTRIES_INDEX:
+        out.append(f"- {c['name']} ({c['region_label']}): shipping to {c['port']}, details at {SITE_URL}/export/{c['slug']}")
+    return "\n".join(out)
 
 
 # ---------- Admin ----------
@@ -349,6 +460,74 @@ async def admin_posts(user=Depends(get_current_user)):
     return await db.posts.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
 
 
+class AutoblogIn(BaseModel):
+    enabled: bool
+    hour_utc: int = 2
+
+
+class KeywordIn(BaseModel):
+    name: str
+    slug: str = ""
+    summary: str = ""
+
+
+@api.post("/admin/keywords")
+async def create_keyword(body: KeywordIn, user=Depends(get_current_user)):
+    slug = slugify(body.slug or body.name)
+    if await db.keywords.find_one({"slug": slug}):
+        raise HTTPException(status_code=400, detail="Keyword slug already exists")
+    doc = {"id": str(uuid.uuid4()), "name": body.name.strip(), "slug": slug,
+           "summary": body.summary.strip(), "created_at": utcnow().isoformat()}
+    await db.keywords.insert_one({**doc})
+    doc.pop("_id", None)
+    return doc
+
+
+@api.put("/admin/keywords/{kid}")
+async def update_keyword(kid: str, body: KeywordIn, user=Depends(get_current_user)):
+    slug = slugify(body.slug or body.name)
+    if await db.keywords.find_one({"slug": slug, "id": {"$ne": kid}}):
+        raise HTTPException(status_code=400, detail="Keyword slug already exists")
+    res = await db.keywords.update_one(
+        {"id": kid}, {"$set": {"name": body.name.strip(), "slug": slug, "summary": body.summary.strip()}})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Keyword not found")
+    return await db.keywords.find_one({"id": kid}, {"_id": 0})
+
+
+@api.delete("/admin/keywords/{kid}")
+async def delete_keyword(kid: str, user=Depends(get_current_user)):
+    res = await db.keywords.delete_one({"id": kid})
+    if res.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Keyword not found")
+    return {"message": "Deleted"}
+
+
+@api.get("/admin/autoblog")
+async def get_autoblog(user=Depends(get_current_user)):
+    s = await db.settings.find_one({"key": "autoblog"}, {"_id": 0})
+    return s or DEFAULT_AUTOBLOG
+
+
+@api.put("/admin/autoblog")
+async def put_autoblog(body: AutoblogIn, user=Depends(get_current_user)):
+    await db.settings.update_one(
+        {"key": "autoblog"},
+        {"$set": {"enabled": body.enabled, "hour_utc": max(0, min(23, body.hour_utc))}},
+        upsert=True,
+    )
+    return await db.settings.find_one({"key": "autoblog"}, {"_id": 0})
+
+
+@api.post("/admin/autoblog/run")
+async def run_autoblog(user=Depends(get_current_user)):
+    try:
+        return await generate_autoblog_post(db)
+    except Exception as e:
+        logger.error("Autoblog manual run failed: %s", e)
+        raise HTTPException(status_code=500, detail=f"Article generation failed: {str(e)[:200]}")
+
+
 app.include_router(api)
 
 app.add_middleware(
@@ -391,6 +570,17 @@ async def startup():
         for p in POSTS:
             await db.posts.insert_one({**p, "id": str(uuid.uuid4()), "created_at": utcnow().isoformat(), "updated_at": utcnow().isoformat()})
         logger.info("Posts seeded")
+
+    if not await db.settings.find_one({"key": "autoblog"}):
+        await db.settings.insert_one(dict(DEFAULT_AUTOBLOG))
+        logger.info("Autoblog settings seeded")
+    asyncio.create_task(autoblog_loop(db))
+
+    if await db.keywords.count_documents({}) == 0:
+        for kwd in DEFAULT_KEYWORDS:
+            await db.keywords.insert_one({**kwd, "slug": slugify(kwd["name"]), "id": str(uuid.uuid4()),
+                                          "created_at": utcnow().isoformat()})
+        logger.info("SEO keywords seeded")
 
 
 @app.on_event("shutdown")

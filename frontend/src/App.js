@@ -16,6 +16,9 @@ import Products from "@/pages/site/Products";
 import ProductDetail from "@/pages/site/ProductDetail";
 import Blog from "@/pages/site/Blog";
 import BlogPost from "@/pages/site/BlogPost";
+import Export from "@/pages/site/Export";
+import ExportCountry from "@/pages/site/ExportCountry";
+import SupplierPage from "@/pages/site/SupplierPage";
 import NotFound from "@/pages/NotFound";
 
 import Login from "@/pages/admin/Login";
@@ -25,6 +28,7 @@ import PageEditor from "@/pages/admin/PageEditor";
 import ProductsAdmin from "@/pages/admin/ProductsAdmin";
 import PostsAdmin from "@/pages/admin/PostsAdmin";
 import InquiriesAdmin from "@/pages/admin/InquiriesAdmin";
+import KeywordsAdmin from "@/pages/admin/KeywordsAdmin";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -73,6 +77,9 @@ function App() {
             <Route path="/products/:slug" element={<SiteShell><ProductDetail /></SiteShell>} />
             <Route path="/blog" element={<SiteShell><Blog /></SiteShell>} />
             <Route path="/blog/:slug" element={<SiteShell><BlogPost /></SiteShell>} />
+            <Route path="/export" element={<SiteShell><Export /></SiteShell>} />
+            <Route path="/export/:slug" element={<SiteShell><ExportCountry /></SiteShell>} />
+            <Route path="/supplier/:keyword/:country" element={<SiteShell><SupplierPage /></SiteShell>} />
 
             <Route path="/admin/login" element={<Login />} />
             <Route path="/admin" element={<AdminLayout />}>
@@ -81,6 +88,7 @@ function App() {
               <Route path="products" element={<ProductsAdmin />} />
               <Route path="blog" element={<PostsAdmin />} />
               <Route path="inquiries" element={<InquiriesAdmin />} />
+              <Route path="keywords" element={<KeywordsAdmin />} />
             </Route>
 
             <Route path="*" element={<SiteShell><NotFound /></SiteShell>} />
