@@ -7,6 +7,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { SectionTag } from "@/components/site/SectionTag";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import NotFound from "@/pages/NotFound";
+import { breadcrumbJsonLd } from "@/lib/schema";
 
 function hashPick(seed, length) {
   if (length <= 0) return 0;
@@ -57,6 +58,11 @@ export default function SupplierPage() {
         areaServed: cn.name,
         serviceType: `${kw.name} supply and export`,
       },
+      breadcrumbJsonLd([
+        { name: "Export Markets", path: "/export" },
+        { name: cn.name, path: `/export/${cn.slug}` },
+        { name: kw.name },
+      ]),
     ],
   };
 

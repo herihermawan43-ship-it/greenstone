@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowUpRight, MessageCircle } from "lucide-react";
 import { api } from "@/lib/api";
 import SEO from "@/components/site/SEO";
 import { Reveal } from "@/components/site/Reveal";
+import { breadcrumbJsonLd } from "@/lib/schema";
 
 function SpecList({ title, items, testid }) {
   if (!items || items.length === 0) return null;
@@ -59,13 +60,24 @@ export default function ProductDetail() {
 
   const productJsonLd = {
     "@context": "https://schema.org",
-    "@type": "Product",
-    name: product.name,
-    description: product.short_desc || product.description,
-    image: product.image,
-    category: product.category,
-    brand: { "@type": "Brand", name: "PT. Murfy Alam Indonesia" },
-    offers: { "@type": "Offer", availability: "https://schema.org/InStock", priceCurrency: "USD", url: `${process.env.REACT_APP_BACKEND_URL}/products/${product.slug}` },
+    "@graph": [
+      {
+        "@type": "Product",
+        name: product.name,
+        description: product.short_desc || product.description,
+        image: [product.image, ...(product.gallery || [])].filter(Boolean),
+        category: product.category,
+        brand: { "@type": "Brand", name: "PT. Murfy Alam Indonesia" },
+        // Pricing is quote-based (FOB/CFR/CIF, volume-dependent) — omitting `offers`
+        // rather than publishing a fake/placeholder price, which Google flags as
+        // invalid structured data.
+      },
+      breadcrumbJsonLd([
+        { name: "Home", path: "/" },
+        { name: "Products", path: "/products" },
+        { name: product.name },
+      ]),
+    ],
   };
 
   const related = (all || []).filter((p) => p.slug !== slug).slice(0, 3);

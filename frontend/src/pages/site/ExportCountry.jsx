@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import SEO from "@/components/site/SEO";
 import { Reveal } from "@/components/site/Reveal";
 import { SectionTag } from "@/components/site/SectionTag";
+import { breadcrumbJsonLd } from "@/lib/schema";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import NotFound from "@/pages/NotFound";
 
@@ -41,6 +42,10 @@ export default function ExportCountry() {
         areaServed: country.name,
         serviceType: "Natural stone supply and export",
       },
+      breadcrumbJsonLd([
+        { name: "Export Markets", path: "/export" },
+        { name: country.name },
+      ]),
     ],
   };
 
