@@ -1,42 +1,16 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Sparkles, Loader2 } from "lucide-react";
 import { api, apiError } from "@/lib/api";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import ImageUpload from "@/components/admin/ImageUpload";
-import RichTextEditor from "@/components/admin/RichTextEditor";
-import SeoFields from "@/components/admin/SeoFields";
-
-const EMPTY = {
-  title: "", slug: "", excerpt: "", content: "", image: "",
-  author: "PT. Murfy Alam Indonesia", tagsText: "", published: true, seo_title: "", seo_desc: "",
-};
-
-const toForm = (p) => ({
-  title: p.title, slug: p.slug, excerpt: p.excerpt, content: p.content, image: p.image,
-  author: p.author, tagsText: (p.tags || []).join(", "), published: !!p.published,
-  seo_title: p.seo_title || "", seo_desc: p.seo_desc || "",
-});
-
-const toPayload = (f) => ({
-  title: f.title, slug: f.slug || undefined, excerpt: f.excerpt, content: f.content, image: f.image,
-  author: f.author, tags: f.tagsText.split(",").map((s) => s.trim()).filter(Boolean),
-  published: f.published, seo_title: f.seo_title, seo_desc: f.seo_desc,
-});
 
 export default function PostsAdmin() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState(EMPTY);
-  const [saving, setSaving] = useState(false);
-
   const [generating, setGenerating] = useState(false);
 
   const { data: posts, isLoading } = useQuery({
@@ -74,31 +48,6 @@ export default function PostsAdmin() {
     }
   };
 
-  const openNew = () => { setForm(EMPTY); setEditing("new"); };
-  const openEdit = (p) => { setForm(toForm(p)); setEditing(p); };
-  const close = () => setEditing(null);
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target ? e.target.value : e });
-
-  const save = async () => {
-    setSaving(true);
-    try {
-      if (editing === "new") {
-        await api.post("/admin/posts", toPayload(form));
-        toast.success("Article created.");
-      } else {
-        await api.put(`/admin/posts/${editing.id}`, toPayload(form));
-        toast.success("Article updated.");
-      }
-      queryClient.invalidateQueries({ queryKey: ["admin-posts"] });
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
-      close();
-    } catch (err) {
-      toast.error(apiError(err));
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const remove = async (p) => {
     if (!window.confirm(`Delete "${p.title}"? This cannot be undone.`)) return;
     try {
@@ -119,7 +68,7 @@ export default function PostsAdmin() {
           <p className="mt-2 text-sm text-muted-foreground">Journal articles shown at /blog.</p>
         </div>
         <button
-          onClick={openNew}
+          onClick={() => navigate("/admin/blog/new")}
           data-testid="post-add-btn"
           className="flex items-center gap-2 bg-moss px-5 py-3 text-xs uppercase tracking-[0.2em] text-white transition-colors hover:bg-mosslight"
         >
@@ -185,7 +134,7 @@ export default function PostsAdmin() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <button data-testid={`post-edit-${p.slug}`} onClick={() => openEdit(p)} className="mr-3 text-muted-foreground transition-colors hover:text-brass" aria-label="Edit">
+                    <button data-testid={`post-edit-${p.slug}`} onClick={() => navigate(`/admin/blog/${p.id}/edit`)} className="mr-3 text-muted-foreground transition-colors hover:text-brass" aria-label="Edit">
                       <Pencil className="h-4 w-4" />
                     </button>
                     <button data-testid={`post-delete-${p.slug}`} onClick={() => remove(p)} className="text-muted-foreground transition-colors hover:text-red-400" aria-label="Delete">
@@ -198,68 +147,6 @@ export default function PostsAdmin() {
           </TableBody>
         </Table>
       </div>
-
-      <Dialog open={!!editing} onOpenChange={(open) => !open && close()}>
-        <DialogContent className="top-[5vh] max-h-[90vh] max-w-2xl translate-y-0 overflow-y-auto border-border bg-card text-bone" data-testid="post-dialog">
-          <DialogHeader>
-            <DialogTitle className="font-serif text-2xl">{editing === "new" ? "New Article" : "Edit Article"}</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Title *</Label>
-              <Input data-testid="post-form-title" value={form.title} onChange={set("title")} className="border-border bg-ink text-bone" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Slug (auto if empty)</Label>
-              <Input data-testid="post-form-slug" value={form.slug} onChange={set("slug")} className="border-border bg-ink font-mono text-xs text-bone" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Author</Label>
-              <Input data-testid="post-form-author" value={form.author} onChange={set("author")} className="border-border bg-ink text-bone" />
-            </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Excerpt</Label>
-              <Textarea rows={2} data-testid="post-form-excerpt" value={form.excerpt} onChange={set("excerpt")} className="border-border bg-ink text-bone" />
-            </div>
-            <div className="sm:col-span-2">
-              <RichTextEditor value={form.content} onChange={set("content")} label="Content" />
-            </div>
-            <div className="sm:col-span-2">
-              <ImageUpload
-                value={form.image}
-                onChange={set("image")}
-                label="Feature Image (Upload or URL)"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Tags (comma separated)</Label>
-              <Input data-testid="post-form-tags" value={form.tagsText} onChange={set("tagsText")} className="border-border bg-ink text-bone" />
-            </div>
-            <div className="flex items-end gap-3 pb-1">
-              <Switch id="post-published" data-testid="post-form-published" checked={form.published} onCheckedChange={(v) => set("published")(v)} />
-              <Label htmlFor="post-published" className="text-xs text-muted-foreground">Published</Label>
-            </div>
-            <div className="sm:col-span-2">
-              <SeoFields
-                seoTitle={form.seo_title}
-                seoDesc={form.seo_desc}
-                onSeoTitleChange={set("seo_title")}
-                onSeoDescChange={set("seo_desc")}
-                fallbackTitle={form.title}
-                path={`/blog/${form.slug || "your-article-slug"}`}
-              />
-            </div>
-          </div>
-          <button
-            onClick={save}
-            disabled={saving || !form.title}
-            data-testid="post-form-save"
-            className="mt-6 w-full bg-moss py-3 text-xs uppercase tracking-[0.25em] text-white transition-colors hover:bg-mosslight disabled:opacity-50"
-          >
-            {saving ? "Saving…" : "Save Article"}
-          </button>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

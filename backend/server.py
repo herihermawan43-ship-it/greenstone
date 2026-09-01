@@ -3,6 +3,7 @@ load_dotenv()
 
 import os
 import re
+import io
 import uuid
 import asyncio
 import logging
@@ -11,6 +12,7 @@ from typing import Optional, List, Any, Dict
 
 import bcrypt
 import jwt
+from PIL import Image
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends, UploadFile, File
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -346,6 +348,37 @@ async def llms_full_txt():
 
 # ---------- Admin File Upload ----------
 
+MAX_IMAGE_DIMENSION = 2200
+
+
+def _process_image(contents: bytes) -> tuple[bytes, str]:
+    """Downscale oversized images and re-encode with compression so the site
+    doesn't ship multi-megabyte photos straight from a camera/phone."""
+    img = Image.open(io.BytesIO(contents))
+    img_format = img.format
+
+    if img_format not in ("JPEG", "PNG", "WEBP"):
+        return contents, "bin"
+
+    if max(img.size) > MAX_IMAGE_DIMENSION:
+        img.thumbnail((MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION), Image.LANCZOS)
+
+    buf = io.BytesIO()
+    if img_format == "JPEG":
+        if img.mode != "RGB":
+            img = img.convert("RGB")
+        img.save(buf, format="JPEG", quality=85, optimize=True)
+        ext = "jpg"
+    elif img_format == "WEBP":
+        img.save(buf, format="WEBP", quality=85)
+        ext = "webp"
+    else:
+        img.save(buf, format="PNG", optimize=True)
+        ext = "png"
+
+    return buf.getvalue(), ext
+
+
 @api.post("/admin/upload/image")
 async def upload_image(file: UploadFile = File(...), user=Depends(get_current_user)):
     """Upload image and return URL path"""
@@ -359,15 +392,25 @@ async def upload_image(file: UploadFile = File(...), user=Depends(get_current_us
     if len(contents) > MAX_SIZE:
         raise HTTPException(status_code=400, detail="File too large (max 10MB)")
 
-    filename = f"{uuid.uuid4().hex[:12]}-{file.filename}"
+    if file.content_type == "image/gif":
+        # Animated GIFs don't survive Pillow's default re-encode — store as-is.
+        processed, ext = contents, "gif"
+    else:
+        try:
+            processed, ext = _process_image(contents)
+        except Exception as e:
+            logger.error("Image processing failed, saving original: %s", e)
+            processed, ext = contents, (file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else "jpg")
+
+    filename = f"{uuid.uuid4().hex[:12]}.{ext}"
     filepath = os.path.join("uploads", filename)
 
     os.makedirs("uploads", exist_ok=True)
     with open(filepath, "wb") as f:
-        f.write(contents)
+        f.write(processed)
 
     url = f"/uploads/{filename}"
-    logger.info("Image uploaded: %s", url)
+    logger.info("Image uploaded: %s (%d -> %d bytes)", url, len(contents), len(processed))
     return {"url": url, "filename": filename}
 
 

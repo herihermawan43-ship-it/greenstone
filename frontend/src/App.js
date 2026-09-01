@@ -27,6 +27,7 @@ import Dashboard from "@/pages/admin/Dashboard";
 import PageEditor from "@/pages/admin/PageEditor";
 import ProductsAdmin from "@/pages/admin/ProductsAdmin";
 import PostsAdmin from "@/pages/admin/PostsAdmin";
+import PostEditor from "@/pages/admin/PostEditor";
 import InquiriesAdmin from "@/pages/admin/InquiriesAdmin";
 import KeywordsAdmin from "@/pages/admin/KeywordsAdmin";
 import SeoExplorer from "@/pages/admin/SeoExplorer";
@@ -41,17 +42,8 @@ function ScrollToTop() {
 }
 
 function SiteShell({ children }) {
-  return (
-    <div className="grain min-h-screen bg-ink">
-      <Navbar />
-      {children}
-      <Footer />
-      <WhatsAppFloat />
-    </div>
-  );
-}
-
-function App() {
+  // Smooth scroll is scoped to the public site only — admin pages (long forms,
+  // rich text editors with their own scroll regions) fought with it otherwise.
   useEffect(() => {
     const lenis = new Lenis({ lerp: 0.09 });
     let rafId;
@@ -66,6 +58,17 @@ function App() {
     };
   }, []);
 
+  return (
+    <div className="grain min-h-screen bg-ink">
+      <Navbar />
+      {children}
+      <Footer />
+      <WhatsAppFloat />
+    </div>
+  );
+}
+
+function App() {
   return (
     <HelmetProvider>
       <AuthProvider>
@@ -89,6 +92,8 @@ function App() {
               <Route path="pages/:slug" element={<PageEditor />} />
               <Route path="products" element={<ProductsAdmin />} />
               <Route path="blog" element={<PostsAdmin />} />
+              <Route path="blog/new" element={<PostEditor />} />
+              <Route path="blog/:id/edit" element={<PostEditor />} />
               <Route path="inquiries" element={<InquiriesAdmin />} />
               <Route path="keywords" element={<KeywordsAdmin />} />
               <Route path="seo-explorer" element={<SeoExplorer />} />
