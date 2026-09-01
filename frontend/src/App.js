@@ -41,6 +41,21 @@ function ScrollToTop() {
   return null;
 }
 
+function Analytics() {
+  const location = useLocation();
+  useEffect(() => {
+    // Skip admin/dashboard usage — GA4 should measure visitor behavior, not our own.
+    if (location.pathname.startsWith("/admin")) return;
+    if (typeof window.gtag !== "function") return;
+    window.gtag("event", "page_view", {
+      page_path: location.pathname + location.search,
+      page_location: window.location.href,
+      page_title: document.title,
+    });
+  }, [location]);
+  return null;
+}
+
 function SiteShell({ children }) {
   return (
     <div className="grain min-h-screen bg-ink">
@@ -58,6 +73,7 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <ScrollToTop />
+          <Analytics />
           <Routes>
             <Route path="/" element={<SiteShell><Home /></SiteShell>} />
             <Route path="/about" element={<SiteShell><About /></SiteShell>} />
