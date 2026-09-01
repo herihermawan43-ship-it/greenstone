@@ -17,7 +17,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
 
-from fastapi.responses import PlainTextResponse, FileResponse
+from fastapi.responses import PlainTextResponse, FileResponse, RedirectResponse
 
 from seed_data import PAGES, PRODUCTS, POSTS
 from email_service import notify_new_inquiry
@@ -591,6 +591,33 @@ app.include_router(api)
 
 # Serve uploaded images
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
+# ---------- Legacy URL redirects ----------
+# This domain previously ran a different site with a deeper URL structure
+# (/export/{keyword}/{country}/{city}, /contact-us/, /tag/{tag}, ...) that Google
+# has indexed and sends real search traffic to. None of those paths exist in the
+# current app, so without redirects they all 404 and that traffic/ranking is lost.
+# These 301s point the old URLs at the closest equivalent page that exists today.
+
+_COUNTRY_SLUGS = {c["slug"] for c in COUNTRIES_INDEX}
+
+
+@app.get("/export/{keyword_slug}/{country_slug}/{rest:path}")
+async def legacy_export_redirect(keyword_slug: str, country_slug: str, rest: str):
+    target = f"/export/{country_slug}" if country_slug in _COUNTRY_SLUGS else "/export"
+    return RedirectResponse(url=target, status_code=301)
+
+
+@app.get("/contact-us")
+@app.get("/contact-us/")
+async def legacy_contact_redirect():
+    return RedirectResponse(url="/contact", status_code=301)
+
+
+@app.get("/tag/{tag_slug:path}")
+async def legacy_tag_redirect(tag_slug: str):
+    return RedirectResponse(url="/blog", status_code=301)
+
 
 # Search engines and crawlers expect these at the domain root, not under /api.
 @app.get("/sitemap.xml")
