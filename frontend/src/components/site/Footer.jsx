@@ -40,9 +40,9 @@ export default function Footer() {
         <div>
           <h3 className="mb-4 text-xs uppercase tracking-[0.25em] text-brass">Head Office</h3>
           <ul className="space-y-3 text-sm text-ash">
-            <li className="flex gap-3"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brass" /><span>Jl. Raya Sukabumi KM 12, Sukabumi Regency, West Java 43151, Indonesia</span></li>
-            <li className="flex gap-3"><Mail className="mt-0.5 h-4 w-4 shrink-0 text-brass" /><a data-testid="footer-email" className="transition-colors hover:text-bone" href="mailto:export@murfyalam.com">export@murfyalam.com</a></li>
-            <li className="flex gap-3"><Phone className="mt-0.5 h-4 w-4 shrink-0 text-brass" /><a data-testid="footer-phone" className="transition-colors hover:text-bone" href="tel:+6281234567890">+62 812-3456-7890</a></li>
+            <li className="flex gap-3"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brass" /><span>Sukabumi, West Java, Indonesia</span></li>
+            <li className="flex gap-3"><Mail className="mt-0.5 h-4 w-4 shrink-0 text-brass" /><a data-testid="footer-email" className="transition-colors hover:text-bone" href="mailto:giat@zeofa.com">giat@zeofa.com</a></li>
+            <li className="flex gap-3"><Phone className="mt-0.5 h-4 w-4 shrink-0 text-brass" /><a data-testid="footer-phone" className="transition-colors hover:text-bone" href="tel:+6285141567350">+62 851-4156-7350</a></li>
           </ul>
         </div>
       </div>

@@ -42,14 +42,15 @@
 - curl: /api/health, /api/pages/home, /api/products(6), /api/posts(4), auth login/me chain, admin page PUT save, inquiry POST, /api/sitemap.xml
 - UI screenshots: home hero + sections, contact form submit (toast confirmed), products grid, admin login → dashboard → homepage editor → inquiries
 
+## Implemented (2026-06 fork)
+- Email notification on new inquiry: `/app/backend/email_service.py` (Emergent managed email, guardrail gate, HTML template), fired as background task from POST /api/inquiries. Recipient OWNER_EMAIL=giat@zeofa.com, EMAIL_FROM_NAME="PT. Murfy Alam Indonesia" (backend/.env). Verified: 202 Accepted + email id logged.
+- Real contact data live everywhere (DB pages.contact.info, seed_data.py, Footer.jsx, WhatsAppFloat.jsx, ProductDetail.jsx fallback): WhatsApp 6285141567350, phone +62 851-4156-7350, email giat@zeofa.com, address "Sukabumi, West Java, Indonesia". Verified via screenshot + wa.me href.
+
 ## Backlog (prioritized)
-- P0: Replace placeholder contact data (WhatsApp number 6281234567890, email export@murfyalam.com, address) with real company data via admin → Contact Page
 - P0: Replace stock images with real product photography (image URL fields ready in admin)
-- P1: Email notification on new inquiry (Resend integration available)
 - P1: Google Search Console verification + custom domain for production SEO
 - P2: Multi-language (Indonesian version), product image upload to object storage, blog categories/search
 
 ## Next Tasks
-1. Ask owner for real WhatsApp number/email/address and update via admin
-2. Upload real stone photography per product
-3. Add email notification for inquiries
+1. Upload real stone photography per product
+2. Custom domain + Search Console for production SEO

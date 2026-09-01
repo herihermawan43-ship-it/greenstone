@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 
 export default function WhatsAppFloat() {
-  const [phone, setPhone] = useState("6281234567890");
+  const [phone, setPhone] = useState("6285141567350");
   const location = useLocation();
 
   useEffect(() => {

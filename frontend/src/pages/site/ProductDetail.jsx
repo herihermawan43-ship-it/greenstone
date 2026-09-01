@@ -54,7 +54,7 @@ export default function ProductDetail() {
     );
   }
 
-  const waNumber = String(contactPage?.content?.info?.whatsapp || "6281234567890").replace(/\D/g, "");
+  const waNumber = String(contactPage?.content?.info?.whatsapp || "6285141567350").replace(/\D/g, "");
   const wa = `https://wa.me/${waNumber}?text=${encodeURIComponent(`Hello, I would like a quotation for ${product.name}.`)}`;
 
   const productJsonLd = {

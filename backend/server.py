@@ -4,6 +4,7 @@ load_dotenv()
 import os
 import re
 import uuid
+import asyncio
 import logging
 from datetime import datetime, timezone, timedelta
 from typing import Optional, List, Any, Dict
@@ -16,6 +17,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
 
 from seed_data import PAGES, PRODUCTS, POSTS
+from email_service import notify_new_inquiry
 
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
@@ -211,6 +213,7 @@ async def create_inquiry(body: InquiryIn):
     doc.update({"id": str(uuid.uuid4()), "status": "new", "created_at": utcnow().isoformat()})
     await db.inquiries.insert_one(doc)
     doc.pop("_id", None)
+    asyncio.create_task(notify_new_inquiry(doc))
     return {"message": "Inquiry received", "id": doc["id"]}
 
 
