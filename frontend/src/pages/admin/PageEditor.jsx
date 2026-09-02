@@ -26,6 +26,17 @@ function getDeep(obj, path) {
   return path.split(".").reduce((o, k) => (o == null ? undefined : o[k]), obj);
 }
 
+// Every `onChange` in this tree receives either a plain new value (leaf
+// fields always pass one) or an updater function `(currentValue) => next`
+// (every composing level — group/array — passes one, so it merges against
+// state that's read fresh at the moment the update actually lands instead of
+// a value snapshotted when the input/upload started). This matters because
+// ImageUpload's onChange can fire seconds after the upload began, by which
+// time a snapshot closed over at render time would be stale.
+function applyUpdate(update, current) {
+  return typeof update === "function" ? update(current) : update;
+}
+
 const emptyItem = (fields) => Object.fromEntries(fields.map((f) => [f.key, ""]));
 
 function renderField(spec, value, onChange, path) {
@@ -38,7 +49,12 @@ function renderField(spec, value, onChange, path) {
       <div className="space-y-5">
         {spec.fields.map((f) => (
           <div key={f.key}>
-            {renderField(f, getDeep(value, f.key), (v) => onChange(setDeep(value, f.key, v)), `${path}.${f.key}`)}
+            {renderField(
+              f,
+              getDeep(value, f.key),
+              (v) => onChange((prevGroup) => setDeep(prevGroup, f.key, applyUpdate(v, getDeep(prevGroup, f.key)))),
+              `${path}.${f.key}`
+            )}
           </div>
         ))}
       </div>
@@ -100,7 +116,7 @@ function renderField(spec, value, onChange, path) {
                 <button
                   type="button"
                   data-testid={`remove-${path.replace(/\./g, "-")}-${i}`}
-                  onClick={() => onChange(items.filter((_, j) => j !== i))}
+                  onClick={() => onChange((prevItems) => (prevItems || []).filter((_, j) => j !== i))}
                   className="text-muted-foreground transition-colors hover:text-red-400"
                   aria-label="Remove item"
                 >
@@ -113,7 +129,7 @@ function renderField(spec, value, onChange, path) {
                     {renderField(
                       f,
                       item?.[f.key],
-                      (v) => onChange(items.map((it, j) => (j === i ? { ...it, [f.key]: v } : it))),
+                      (v) => onChange((prevItems) => (prevItems || []).map((it, j) => (j === i ? { ...it, [f.key]: applyUpdate(v, it?.[f.key]) } : it))),
                       `${path}-${i}-${f.key}`
                     )}
                   </div>
@@ -125,7 +141,7 @@ function renderField(spec, value, onChange, path) {
         <button
           type="button"
           data-testid={`add-${path.replace(/\./g, "-")}`}
-          onClick={() => onChange([...items, emptyItem(spec.fields)])}
+          onClick={() => onChange((prevItems) => [...(prevItems || []), emptyItem(spec.fields)])}
           className="flex items-center gap-2 border border-dashed border-border px-4 py-2.5 text-xs uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:border-brass hover:text-brass"
         >
           <Plus className="h-3.5 w-3.5" /> Add {spec.itemLabel}
@@ -209,7 +225,7 @@ export default function PageEditor() {
               {renderField(
                 section,
                 content[section.key],
-                (v) => setContent(setDeep(content, section.key, v)),
+                (v) => setContent((prev) => setDeep(prev, section.key, applyUpdate(v, getDeep(prev, section.key)))),
                 section.key
               )}
             </section>
