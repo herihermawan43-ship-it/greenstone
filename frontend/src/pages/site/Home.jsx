@@ -151,6 +151,7 @@ function Manifesto({ data }) {
               src={data.image}
               alt="Raw Sukabumi green stone blocks selected for export"
               className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+              loading="lazy"
             />
             <div className="absolute inset-0 border border-bone/10" />
           </div>
@@ -170,6 +171,7 @@ function Spotlight({ data }) {
               src={data.image}
               alt="Close-up texture of Sukabumi green stone tiles with natural mineral veins"
               className="aspect-[4/5] w-full object-cover transition-transform duration-700 hover:scale-105"
+              loading="lazy"
             />
             <div className="absolute bottom-0 left-0 bg-ink/80 px-5 py-3 backdrop-blur-sm">
               <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-brass">Pedra Bali · West Java</span>
@@ -223,6 +225,7 @@ function Applications({ data }) {
                 src={item.image}
                 alt={`Sukabumi green stone application — ${item.title}`}
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-ink/95 via-ink/25 to-transparent" />
               <div className="absolute bottom-0 left-0 p-7">
@@ -391,6 +394,7 @@ function Projects({ data }) {
                     src={p.image}
                     alt={`${p.title} — Sukabumi green stone project in ${p.location}`}
                     className="aspect-[4/3] w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    loading="lazy"
                   />
                 </div>
                 <figcaption className="mt-4 flex items-baseline justify-between border-t border-line pt-4">

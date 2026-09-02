@@ -93,7 +93,7 @@ export default function BlogPost() {
 
         <Reveal delay={0.1}>
           <div className="mt-12 overflow-hidden">
-            <img src={post.image} alt={post.title} className="aspect-[16/9] w-full object-cover" data-testid="post-hero-image" />
+            <img src={post.image} alt={post.title} className="aspect-[16/9] w-full object-cover" data-testid="post-hero-image" fetchPriority="high" />
           </div>
         </Reveal>
 
