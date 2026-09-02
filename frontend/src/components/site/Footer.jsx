@@ -47,7 +47,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="border-t border-line">
-        <div className="container-x flex flex-col items-start justify-between gap-3 py-6 text-xs text-ash sm:flex-row sm:items-center">
+        <div className="container-x flex flex-col items-start justify-between gap-3 py-6 pr-24 text-xs text-ash sm:flex-row sm:items-center">
           <span data-testid="footer-copyright">© 2026 PT. Murfy Alam Indonesia. All rights reserved.</span>
           <span className="font-mono text-[10px] uppercase tracking-[0.2em]">Sukabumi · West Java · Indonesia</span>
         </div>
