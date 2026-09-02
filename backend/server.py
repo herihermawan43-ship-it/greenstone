@@ -80,6 +80,20 @@ async def get_current_user(request: Request):
     return user
 
 
+def rate_limiter(key: str, limit: int, window_seconds: int):
+    """Per-IP rate limit backed by MongoDB (not in-process memory) so it holds
+    across the multiple uvicorn worker processes this app runs behind."""
+    async def _check(request: Request):
+        ip = request.client.host if request.client else "unknown"
+        now = utcnow()
+        window_start = now - timedelta(seconds=window_seconds)
+        count = await db.rate_limits.count_documents({"key": key, "ip": ip, "ts": {"$gte": window_start}})
+        if count >= limit:
+            raise HTTPException(status_code=429, detail="Too many requests. Please try again later.")
+        await db.rate_limits.insert_one({"key": key, "ip": ip, "ts": now})
+    return _check
+
+
 def slugify(text: str) -> str:
     s = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
     return s or uuid.uuid4().hex[:8]
@@ -152,7 +166,7 @@ async def health():
 
 # ---------- Auth ----------
 
-@api.post("/auth/login")
+@api.post("/auth/login", dependencies=[Depends(rate_limiter("login", 10, 900))])
 async def login(body: LoginIn, response: Response):
     email = body.email.lower().strip()
     user = await db.users.find_one({"email": email})
@@ -215,7 +229,7 @@ async def get_post(slug: str):
     return item
 
 
-@api.post("/inquiries")
+@api.post("/inquiries", dependencies=[Depends(rate_limiter("inquiry", 5, 600))])
 async def create_inquiry(body: InquiryIn):
     doc = body.model_dump()
     doc.update({"id": str(uuid.uuid4()), "status": "new", "created_at": utcnow().isoformat()})
@@ -757,6 +771,7 @@ async def startup():
     await db.users.create_index("email", unique=True)
     await db.products.create_index("slug", unique=True)
     await db.posts.create_index("slug", unique=True)
+    await db.rate_limits.create_index("ts", expireAfterSeconds=3600)
 
     existing = await db.users.find_one({"email": ADMIN_EMAIL})
     if not existing:
