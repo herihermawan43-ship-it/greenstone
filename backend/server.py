@@ -771,6 +771,10 @@ async def startup():
     await db.users.create_index("email", unique=True)
     await db.products.create_index("slug", unique=True)
     await db.posts.create_index("slug", unique=True)
+    await db.keywords.create_index("slug", unique=True)
+    # rate_limiter() queries by (key, ip, ts) on every request it guards; without
+    # this compound index that lookup is a collection scan of the last hour of hits.
+    await db.rate_limits.create_index([("key", 1), ("ip", 1), ("ts", 1)])
     await db.rate_limits.create_index("ts", expireAfterSeconds=3600)
 
     existing = await db.users.find_one({"email": ADMIN_EMAIL})
