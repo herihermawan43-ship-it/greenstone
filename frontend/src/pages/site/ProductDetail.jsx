@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowUpRight, MessageCircle } from "lucide-react";
 import { api } from "@/lib/api";
 import SEO from "@/components/site/SEO";
 import { Reveal } from "@/components/site/Reveal";
-import { breadcrumbJsonLd } from "@/lib/schema";
+import { breadcrumbJsonLd, absoluteUrl } from "@/lib/schema";
 
 function SpecList({ title, items, testid }) {
   if (!items || items.length === 0) return null;
@@ -65,7 +65,7 @@ export default function ProductDetail() {
         "@type": "Product",
         name: product.name,
         description: product.short_desc || product.description,
-        image: [product.image, ...(product.gallery || [])].filter(Boolean),
+        image: [product.image, ...(product.gallery || [])].filter(Boolean).map(absoluteUrl),
         category: product.category,
         brand: { "@type": "Brand", name: "PT. Murfy Alam Indonesia" },
         // Pricing is quote-based (FOB/CFR/CIF, volume-dependent) — omitting `offers`

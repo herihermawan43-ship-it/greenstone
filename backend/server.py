@@ -353,12 +353,11 @@ MAX_IMAGE_DIMENSION = 2200
 
 def _process_image(contents: bytes) -> tuple[bytes, str]:
     """Downscale oversized images and re-encode with compression so the site
-    doesn't ship multi-megabyte photos straight from a camera/phone."""
+    doesn't ship multi-megabyte photos straight from a camera/phone. Always
+    re-encodes to one of JPEG/PNG/WEBP — never passes the original bytes or
+    extension through, so the output format is never attacker-controlled."""
     img = Image.open(io.BytesIO(contents))
-    img_format = img.format
-
-    if img_format not in ("JPEG", "PNG", "WEBP"):
-        return contents, "bin"
+    img_format = img.format if img.format in ("JPEG", "PNG", "WEBP") else "PNG"
 
     if max(img.size) > MAX_IMAGE_DIMENSION:
         img.thumbnail((MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION), Image.LANCZOS)
@@ -379,13 +378,20 @@ def _process_image(contents: bytes) -> tuple[bytes, str]:
     return buf.getvalue(), ext
 
 
+_UPLOAD_CONTENT_TYPE_EXT = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif",
+}
+
+
 @api.post("/admin/upload/image")
 async def upload_image(file: UploadFile = File(...), user=Depends(get_current_user)):
     """Upload image and return URL path"""
-    ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
     MAX_SIZE = 10 * 1024 * 1024  # 10MB
 
-    if file.content_type not in ALLOWED_TYPES:
+    if file.content_type not in _UPLOAD_CONTENT_TYPE_EXT:
         raise HTTPException(status_code=400, detail="Only JPEG, PNG, WebP, and GIF images allowed")
 
     contents = await file.read()
@@ -400,7 +406,11 @@ async def upload_image(file: UploadFile = File(...), user=Depends(get_current_us
             processed, ext = _process_image(contents)
         except Exception as e:
             logger.error("Image processing failed, saving original: %s", e)
-            processed, ext = contents, (file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else "jpg")
+            # Never trust the client-supplied filename's extension — the output
+            # extension must stay within the allow-list above regardless of what
+            # the upload claims, or a crafted filename could get arbitrary bytes
+            # served back as e.g. .html from this origin.
+            processed, ext = contents, _UPLOAD_CONTENT_TYPE_EXT[file.content_type]
 
     # Keyword-rich filenames help image SEO — base it on the original filename
     # (renamed by the admin before upload) rather than a pure random string.
@@ -636,6 +646,7 @@ async def put_settings_endpoint(body: IntegrationSettingsIn, user=Depends(get_cu
 app.include_router(api)
 
 # Serve uploaded images
+os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # ---------- Legacy URL redirects ----------
@@ -648,10 +659,20 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 _COUNTRY_SLUGS = {c["slug"] for c in COUNTRIES_INDEX}
 
 
+def _legacy_export_target(country_slug: str) -> str:
+    return f"/export/{country_slug}" if country_slug in _COUNTRY_SLUGS else "/export"
+
+
 @app.get("/export/{keyword_slug}/{country_slug}/{rest:path}")
 async def legacy_export_redirect(keyword_slug: str, country_slug: str, rest: str):
-    target = f"/export/{country_slug}" if country_slug in _COUNTRY_SLUGS else "/export"
-    return RedirectResponse(url=target, status_code=301)
+    return RedirectResponse(url=_legacy_export_target(country_slug), status_code=301)
+
+
+@app.get("/export/{keyword_slug}/{country_slug}")
+async def legacy_export_redirect_no_trailing(keyword_slug: str, country_slug: str):
+    # Same as above but without a trailing third segment (e.g. no trailing
+    # slash on the old /export/{keyword}/{country}/ pattern).
+    return RedirectResponse(url=_legacy_export_target(country_slug), status_code=301)
 
 
 @app.get("/contact-us")

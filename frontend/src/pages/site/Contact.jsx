@@ -34,7 +34,7 @@ export default function Contact() {
     "Hello PT. Murfy Alam Indonesia, I would like a quotation for Sukabumi Green Stone."
   )}`;
 
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  const set = (k) => (e) => setForm((prev) => ({ ...prev, [k]: e.target.value }));
 
   const submit = async (e) => {
     e.preventDefault();

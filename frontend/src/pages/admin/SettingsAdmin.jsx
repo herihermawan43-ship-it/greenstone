@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Save, Eye, EyeOff, KeyRound, Mail } from "lucide-react";
@@ -53,10 +53,17 @@ function SecretField({ testId, label, value, onChange, settings, field, placehol
   );
 }
 
+const SECRET_FIELDS = ["openai_api_key", "anthropic_api_key", "gemini_api_key", "smtp_password"];
+
 export default function SettingsAdmin() {
   const queryClient = useQueryClient();
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
+  // Snapshot of what was actually loaded (env-resolved values included), so
+  // Save only sends fields the admin truly changed — otherwise every save
+  // would permanently copy the current .env values into the database, and
+  // editing .env afterwards would silently stop having any effect.
+  const loadedRef = useRef(null);
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ["admin-settings"],
@@ -65,7 +72,7 @@ export default function SettingsAdmin() {
 
   useEffect(() => {
     if (!settings) return;
-    setForm({
+    const initial = {
       openai_api_key: "", anthropic_api_key: "", gemini_api_key: "", smtp_password: "",
       autoblog_openai_model: settings.autoblog_openai_model || "",
       autoblog_anthropic_model: settings.autoblog_anthropic_model || "",
@@ -78,15 +85,27 @@ export default function SettingsAdmin() {
       email_from_name: settings.email_from_name || "",
       email_reply_to: settings.email_reply_to || "",
       owner_email: settings.owner_email || "",
-    });
+    };
+    setForm(initial);
+    loadedRef.current = initial;
   }, [settings]);
 
-  const set = (k) => (e) => setForm({ ...form, [k]: e?.target ? e.target.value : e });
+  const set = (k) => (e) => setForm((prev) => ({ ...prev, [k]: e?.target ? e.target.value : e }));
 
   const save = async () => {
     setSaving(true);
     try {
-      await api.put("/admin/settings", { ...form, smtp_port: Number(form.smtp_port) || 587 });
+      const payload = {};
+      for (const key of Object.keys(form)) {
+        if (SECRET_FIELDS.includes(key)) {
+          if (form[key]) payload[key] = form[key]; // blank = leave the stored secret alone
+          continue;
+        }
+        const current = key === "smtp_port" ? Number(form[key]) || 587 : form[key];
+        const loaded = loadedRef.current?.[key];
+        if (current !== loaded) payload[key] = current;
+      }
+      await api.put("/admin/settings", payload);
       toast.success("Settings saved.");
       queryClient.invalidateQueries({ queryKey: ["admin-settings"] });
     } catch (err) {

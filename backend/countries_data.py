@@ -239,7 +239,7 @@ def get_country_payload(slug: str, keywords=None):
     if not c:
         return None
     related = [x for x in COUNTRIES_INDEX if x["region"] == c["region"] and x["slug"] != slug][:6]
-    kw_list = [{"name": kw["name"], "slug": kw["slug"]} for kw in (keywords or DEFAULT_KEYWORDS)]
+    kw_list = [{"name": kw["name"], "slug": kw.get("slug") or _slugify(kw["name"])} for kw in (keywords or DEFAULT_KEYWORDS)]
     return {**c, "content": build_country_content(c),
             "related": [{"name": r["name"], "slug": r["slug"]} for r in related],
             "keywords": kw_list}

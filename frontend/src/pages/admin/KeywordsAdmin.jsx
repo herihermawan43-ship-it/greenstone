@@ -27,7 +27,7 @@ export default function KeywordsAdmin() {
   });
 
   const countryCount = countries?.length || 0;
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  const set = (k) => (e) => setForm((prev) => ({ ...prev, [k]: e.target.value }));
   const openNew = () => { setForm(EMPTY); setEditing("new"); };
   const openEdit = (k) => { setForm({ name: k.name, slug: k.slug, summary: k.summary || "" }); setEditing(k); };
   const close = () => setEditing(null);

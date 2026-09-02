@@ -55,7 +55,7 @@ export default function Dashboard() {
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
             Each page carries its own meta title, description and keywords — edit them under the “SEO Meta”
             group of every page. Product and article structured data (JSON-LD) is generated automatically,
-            and the sitemap updates itself at <span className="font-mono text-xs text-bone">/api/sitemap.xml</span>.
+            and the sitemap updates itself at <span className="font-mono text-xs text-bone">/sitemap.xml</span>.
           </p>
         </div>
       </div>

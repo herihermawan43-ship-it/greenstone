@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { api } from "@/lib/api";
 import SEO from "@/components/site/SEO";
 import { Reveal } from "@/components/site/Reveal";
-import { breadcrumbJsonLd } from "@/lib/schema";
+import { breadcrumbJsonLd, absoluteUrl } from "@/lib/schema";
 
 const isHtml = (s) => /<[a-z][\s\S]*>/i.test(s || "");
 
@@ -50,7 +50,7 @@ export default function BlogPost() {
         "@type": "Article",
         headline: post.title,
         description: post.excerpt,
-        image: post.image,
+        image: absoluteUrl(post.image),
         datePublished: post.created_at,
         dateModified: post.updated_at || post.created_at,
         author: { "@type": "Organization", name: post.author },

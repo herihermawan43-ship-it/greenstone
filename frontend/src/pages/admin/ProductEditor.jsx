@@ -38,8 +38,15 @@ const toPayload = (f) => ({
   featured: f.featured, seo_title: f.seo_title, seo_desc: f.seo_desc,
 });
 
+// Keyed on `id` so navigating directly between two edit URLs (e.g. via
+// browser back/forward) remounts the form instead of reusing stale state
+// from whichever product was being edited before.
 export default function ProductEditor() {
   const { id } = useParams();
+  return <ProductEditorForm key={id || "new"} id={id} />;
+}
+
+function ProductEditorForm({ id }) {
   const isNew = !id;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -47,7 +54,7 @@ export default function ProductEditor() {
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(isNew);
 
-  const { data: products } = useQuery({
+  const { data: products, isError } = useQuery({
     queryKey: ["products"],
     queryFn: async () => (await api.get("/products")).data,
     enabled: !isNew,
@@ -62,7 +69,9 @@ export default function ProductEditor() {
     }
   }, [isNew, loaded, products, id]);
 
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target ? e.target.value : e });
+  const notFound = !isNew && products && !loaded && !products.some((p) => p.id === id);
+
+  const set = (k) => (e) => setForm((prev) => ({ ...prev, [k]: e.target ? e.target.value : e }));
 
   const save = async () => {
     setSaving(true);
@@ -82,6 +91,21 @@ export default function ProductEditor() {
       setSaving(false);
     }
   };
+
+  if (isError) {
+    return <div className="text-red-400" data-testid="product-editor-error">Failed to load this product. Try refreshing the page.</div>;
+  }
+
+  if (notFound) {
+    return (
+      <div data-testid="product-editor-not-found">
+        <p className="text-muted-foreground">This product no longer exists — it may have been deleted.</p>
+        <button onClick={() => navigate("/admin/products")} className="mt-4 text-sm text-brass hover:underline">
+          Back to Products
+        </button>
+      </div>
+    );
+  }
 
   if (!isNew && !loaded) {
     return <div className="text-muted-foreground" data-testid="product-editor-loading">Loading…</div>;

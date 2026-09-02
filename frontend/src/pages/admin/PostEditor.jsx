@@ -29,8 +29,15 @@ const toPayload = (f) => ({
   published: f.published, seo_title: f.seo_title, seo_desc: f.seo_desc,
 });
 
+// Keyed on `id` so navigating directly between two edit URLs (e.g. via
+// browser back/forward) remounts the form instead of reusing stale state
+// from whichever post was being edited before.
 export default function PostEditor() {
   const { id } = useParams();
+  return <PostEditorForm key={id || "new"} id={id} />;
+}
+
+function PostEditorForm({ id }) {
   const isNew = !id;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -38,7 +45,7 @@ export default function PostEditor() {
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(isNew);
 
-  const { data: posts } = useQuery({
+  const { data: posts, isError } = useQuery({
     queryKey: ["admin-posts"],
     queryFn: async () => (await api.get("/admin/posts-all")).data,
     enabled: !isNew,
@@ -53,7 +60,9 @@ export default function PostEditor() {
     }
   }, [isNew, loaded, posts, id]);
 
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target ? e.target.value : e });
+  const notFound = !isNew && posts && !loaded && !posts.some((p) => p.id === id);
+
+  const set = (k) => (e) => setForm((prev) => ({ ...prev, [k]: e.target ? e.target.value : e }));
 
   const save = async () => {
     setSaving(true);
@@ -74,6 +83,21 @@ export default function PostEditor() {
       setSaving(false);
     }
   };
+
+  if (isError) {
+    return <div className="text-red-400" data-testid="post-editor-error">Failed to load this article. Try refreshing the page.</div>;
+  }
+
+  if (notFound) {
+    return (
+      <div data-testid="post-editor-not-found">
+        <p className="text-muted-foreground">This article no longer exists — it may have been deleted.</p>
+        <button onClick={() => navigate("/admin/blog")} className="mt-4 text-sm text-brass hover:underline">
+          Back to Blog
+        </button>
+      </div>
+    );
+  }
 
   if (!isNew && !loaded) {
     return <div className="text-muted-foreground" data-testid="post-editor-loading">Loading…</div>;
